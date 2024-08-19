@@ -1,0 +1,69 @@
+# Torpedo Dodger
+Genre: Bullet Hell
+Karte: 5x5 Grid
+Gameplay: In regelmäßigen Abständen fliegen Torpedos vom Himmel und man muss sie ausweichen
+- Turn based
+
+Workshop
+1. Leute verbinden sich mit dem Game-Server (Websockets)
+2. Im bestimmten Takt kriegen sie den Game-State
+    [
+        [0,0,0,0,0],
+        [0,0,2,0,0],
+        [0,0,0,0,0],
+        [0,0,0,0,0]
+    ]
+3. Ziel: Leute programmieren einen Bot der das Schiff passend positioniert
+
+Regeln
+- Turn-based
+- Online Multiplayer
+- Kollision vorhanden
+- Bestenliste (im Sinne von io.Games)
+
+Kochen
+- Angriffstypen
+        Kreuzexplosion
+        [0,0,1,0,0],
+        [1,1,2,1,1],
+        [0,0,1,0,0],
+        [0,0,1,0,0]
+        
+        Kreisexplosion
+        [0,1,1,1,0],
+        [0,1,2,1,0],
+        [0,1,1,1,0],
+        [0,0,0,0,0]
+
+        Queen Black Dragon Move
+        [1,0,1,1,1],
+        [0,0,0,0,0],
+        [0,0,0,0,0],
+        [0,0,0,0,0]
+
+- Hai
+    schwimmt quer über die Karte
+
+- Minen
+    Torpedos die auf Minen fliegen machen extra Bumm
+
+- Verschiedene Schifftypen in unterschiedlicher Größe
+- Spieler-Färbung über den Erstplatzierten
+- Wenn jemand stirbt: Schlechter Spruch mit Death Message
+    - "X ist über die Planke gesprungen"
+- Items
+
+
+# Fangi
+Genre: Survival
+
+KI Jäger versuchen die Spieler zu fangen
+
+Karte: 10x10 mit Hindernissen, Teleports, Boosts, Auszeit
+
+Kochen
+- mit Hindernissen
+- Teleports
+- Boosts
+- Auszeit
+- Andere negative Effekte (Stuns)
