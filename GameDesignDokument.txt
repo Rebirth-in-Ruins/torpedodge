@@ -3,6 +3,7 @@ Genre: Bullet Hell
 Karte: 5x5 Grid
 Gameplay: In regelmäßigen Abständen fliegen Torpedos vom Himmel und man muss sie ausweichen
 - Turn based
+Architektur & Implementierung: https://excalidraw.com/#room=bb7eb6232149fd7e3974,gP3eHUFJTTvS38REEi4yOg
 
 Workshop
 1. Leute verbinden sich mit dem Game-Server (Websockets)
