@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "target": "ESNext",         /* Which features are downlevelled - es5 (2009), es6 (2015), es2015, es2022, esnext */
+    "lib": ["ESNext", "DOM", "scripthost"],   /* Included set of type definitions - if program doesn't run in browser no "dom" is needed */
+    "outDir": "dist",           /* where .js files are emitted to */
+    "moduleResolution": "nodenext", /* Strategy when encountering an import statement - which the compiler uses to try locate a file */
+    "esModuleInterop": true,
+
+    /* Paths where types should be found */
+    "typeRoots": [
+        "./types",
+        "./node_modules/@types",
+        "./node_module/phaser/types"
+    ],
+  },
+  "include": ["**/*"],
+  "exclude": []
+}

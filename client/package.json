@@ -22,6 +22,10 @@
   },
   "homepage": "https://github.com/Rebirth-in-Ruins/untitled#readme",
   "dependencies": {
+    "phaser": "^3.80.1",
     "vite": "^5.4.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
   }
 }
