@@ -4,7 +4,9 @@
   "description": "Browsergame",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite --host",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "repository": {
     "type": "git",
@@ -18,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/Rebirth-in-Ruins/untitled/issues"
   },
-  "homepage": "https://github.com/Rebirth-in-Ruins/untitled#readme"
+  "homepage": "https://github.com/Rebirth-in-Ruins/untitled#readme",
+  "dependencies": {
+    "vite": "^5.4.2"
+  }
 }
