@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
+import Player from './player';
 
-class Example extends Phaser.Scene
+class Game extends Phaser.Scene
 {
     private keys: any;
     private ship: Phaser.GameObjects.Image;
@@ -8,12 +9,13 @@ class Example extends Phaser.Scene
     private moveCooldown: number = 0;
 
     private GRID_COUNT: number = 12;
-    private SCALE_FACTOR: number = 1 / (this.GRID_COUNT*1.3);
     private MOVE_COOLDOWN: number = 200;
+
+    private player: Player;
 
     preload ()
     {
-        this.load.image('red', 'assets/Sprite-0001.png');
+        this.load.image('red', 'assets/Player_Boot.png');
     }
 
     create ()
@@ -27,9 +29,15 @@ class Example extends Phaser.Scene
 
         this.tile = width/this.GRID_COUNT;
 
-        this.ship = this.add.image(width/(this.GRID_COUNT*2), width/(this.GRID_COUNT*2), 'red');
-        this.ship.displayWidth = width*this.SCALE_FACTOR;
-        this.ship.displayHeight = height*this.SCALE_FACTOR;
+        this.player = new Player(this, 0, 0, width/this.GRID_COUNT);
+        this.player = new Player(this, 1, 1, width/this.GRID_COUNT);
+        this.player = new Player(this, 2, 2, width/this.GRID_COUNT);
+
+        this.player = new Player(this, 3, 3, width/this.GRID_COUNT);
+
+        // this.ship = this.add.image(width/(this.GRID_COUNT*2), width/(this.GRID_COUNT*2), 'red');
+        // this.ship.displayWidth = width*this.SCALE_FACTOR;
+        // this.ship.displayHeight = height*this.SCALE_FACTOR;
 
         // const circle = new Phaser.Geom.Circle(100, 100, 10);
         // const graphics = this.add.graphics({ fillStyle: { color: 0xff0000 } });
@@ -71,7 +79,7 @@ const config = {
     type: Phaser.AUTO,
     width: 800,
     height: 800,
-    scene: Example,
+    scene: Game,
     parent: "game",
     pixelArt: true,
     physics: {

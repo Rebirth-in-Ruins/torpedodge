@@ -45,7 +45,7 @@ Kochen
         [0,0,0,0,0],
         [0,0,0,0,0],
         [0,0,0,0,0]
-
+- Flugzeug
 - Hai
     schwimmt quer über die Karte
 
