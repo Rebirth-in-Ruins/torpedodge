@@ -23,6 +23,9 @@ Regeln
 - Bestenliste (im Sinne von io.Games)
 
 Kochen
+- Je mehr Spieler dazukommen desto größer wird das Feld
+    - Spieler und Grid skalieren und werden größer/kleiner
+    - Wenn das Grid kleiner wird gibt es Bomben am Rand
 - Angriffstypen
         Kreuzexplosion
         [0,0,1,0,0],
@@ -53,18 +56,3 @@ Kochen
 - Wenn jemand stirbt: Schlechter Spruch mit Death Message
     - "X ist über die Planke gesprungen"
 - Items
-
-
-# Fangi
-Genre: Survival
-
-KI Jäger versuchen die Spieler zu fangen
-
-Karte: 10x10 mit Hindernissen, Teleports, Boosts, Auszeit
-
-Kochen
-- mit Hindernissen
-- Teleports
-- Boosts
-- Auszeit
-- Andere negative Effekte (Stuns)

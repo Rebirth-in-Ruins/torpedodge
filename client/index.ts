@@ -5,6 +5,8 @@ class Example extends Phaser.Scene
     keys: any
     ship: Phaser.GameObjects.Image
 
+    GRID_COUNT: number = 12;
+
     preload ()
     {
         this.load.image('red', 'assets/Sprite-0001.png');
@@ -12,11 +14,20 @@ class Example extends Phaser.Scene
 
     create ()
     {
-        this.ship = this.add.image(400, 300, 'red');
-        this.ship.displayWidth = 100;
-        this.ship.displayHeight = 100;
 
         this.keys = this.input.keyboard.addKeys('W,A,S,D');
+
+        let { width, height } = this.sys.game.canvas;
+        const g1 = this.add.grid(0, 0, width, height, width/this.GRID_COUNT, height/this.GRID_COUNT, 0x057605);
+        g1.setOrigin(0,0);
+        
+        this.ship = this.add.image(width/(this.GRID_COUNT*2), width/(this.GRID_COUNT*2), 'red');
+        this.ship.displayWidth = width/this.GRID_COUNT;
+        this.ship.displayHeight = height/this.GRID_COUNT;
+
+        // const circle = new Phaser.Geom.Circle(100, 100, 10);
+        // const graphics = this.add.graphics({ fillStyle: { color: 0xff0000 } });
+        // graphics.fillCircleShape(circle);
     }
 
     update() 
@@ -43,7 +54,7 @@ class Example extends Phaser.Scene
 const config = {
     type: Phaser.AUTO,
     width: 800,
-    height: 600,
+    height: 800,
     scene: Example,
     parent: "game",
     physics: {
