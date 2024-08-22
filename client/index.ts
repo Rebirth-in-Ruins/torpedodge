@@ -2,10 +2,14 @@ import Phaser from 'phaser';
 
 class Example extends Phaser.Scene
 {
-    keys: any
-    ship: Phaser.GameObjects.Image
+    private keys: any;
+    private ship: Phaser.GameObjects.Image;
+    private tile: number;
+    private moveCooldown: number = 0;
 
-    GRID_COUNT: number = 12;
+    private GRID_COUNT: number = 12;
+    private SCALE_FACTOR: number = 1 / (this.GRID_COUNT*1.3);
+    private MOVE_COOLDOWN: number = 200;
 
     preload ()
     {
@@ -18,34 +22,46 @@ class Example extends Phaser.Scene
         this.keys = this.input.keyboard.addKeys('W,A,S,D');
 
         let { width, height } = this.sys.game.canvas;
-        const g1 = this.add.grid(0, 0, width, height, width/this.GRID_COUNT, height/this.GRID_COUNT, 0x057605);
+        const g1 = this.add.grid(0, 0, width, height, width/this.GRID_COUNT, height/this.GRID_COUNT, 0x0000cc);
         g1.setOrigin(0,0);
-        
+
+        this.tile = width/this.GRID_COUNT;
+
         this.ship = this.add.image(width/(this.GRID_COUNT*2), width/(this.GRID_COUNT*2), 'red');
-        this.ship.displayWidth = width/this.GRID_COUNT;
-        this.ship.displayHeight = height/this.GRID_COUNT;
+        this.ship.displayWidth = width*this.SCALE_FACTOR;
+        this.ship.displayHeight = height*this.SCALE_FACTOR;
 
         // const circle = new Phaser.Geom.Circle(100, 100, 10);
         // const graphics = this.add.graphics({ fillStyle: { color: 0xff0000 } });
         // graphics.fillCircleShape(circle);
     }
 
-    update() 
+    update(time, delta) 
     {
-        if(this.keys.W.isDown) {
-            this.ship.y -= 1;
+        if(this.moveCooldown >= 0) {
+            this.moveCooldown -= delta
+        }
+        console.log(this.tile);
+
+
+        if(this.keys.W.isDown && this.moveCooldown <= 0) {
+            this.moveCooldown = this.MOVE_COOLDOWN;
+            this.ship.y -= this.tile;
             this.ship.angle = 0;
         }
-        if(this.keys.A.isDown) {
-            this.ship.x -= 1;
+        if(this.keys.A.isDown && this.moveCooldown <= 0) {
+            this.moveCooldown = this.MOVE_COOLDOWN;
+            this.ship.x -= this.tile;
             this.ship.angle = -90;
         }
-        if(this.keys.S.isDown) {
-            this.ship.y += 1;
+        if(this.keys.S.isDown && this.moveCooldown <= 0) {
+            this.moveCooldown = this.MOVE_COOLDOWN;
+            this.ship.y += this.tile;
             this.ship.angle = 180;
         }
-        if(this.keys.D.isDown) {
-            this.ship.x += 1;
+        if(this.keys.D.isDown && this.moveCooldown <= 0) {
+            this.moveCooldown = this.MOVE_COOLDOWN;
+            this.ship.x += this.tile;
             this.ship.angle = 90;
         }
     }
@@ -57,6 +73,7 @@ const config = {
     height: 800,
     scene: Example,
     parent: "game",
+    pixelArt: true,
     physics: {
         default: 'arcade',
         arcade: {

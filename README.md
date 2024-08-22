@@ -23,6 +23,7 @@ Regeln
 - Bestenliste (im Sinne von io.Games)
 
 Kochen
+- Balken an der Seite als Countdown für die Runde
 - Je mehr Spieler dazukommen desto größer wird das Feld
     - Spieler und Grid skalieren und werden größer/kleiner
     - Wenn das Grid kleiner wird gibt es Bomben am Rand
