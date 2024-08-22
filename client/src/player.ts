@@ -6,7 +6,6 @@ export default class Player {
 
     private keys: any; // TODO: needed?
     private ship: Phaser.GameObjects.Image;
-    private tile: number;
     private moveCooldown: number = 0;
 
     private MOVE_COOLDOWN: number = 200; // in ms
@@ -35,19 +34,41 @@ export default class Player {
 
     update(time, delta)
     {
-
+        if(this.moveCooldown >= 0) {
+            this.moveCooldown -= delta
+        }
+        console.log(this.moveCooldown);
     }
 
-    move_Up(){
+    moveUp() {
+        if(this.moveCooldown <= 0){
+            this.moveCooldown = this.MOVE_COOLDOWN;
+            this.ship.y -= this.size;
+            this.ship.angle = 0; 
+        }
+    }
 
+    moveDown() {
+        if(this.moveCooldown <= 0) {
+            this.moveCooldown = this.MOVE_COOLDOWN;
+            this.ship.y += this.size;
+            this.ship.angle = 180;
+        }
     }
-    move_Down(){
-        
+
+    moveLeft() {
+        if(this.moveCooldown <= 0) {
+            this.moveCooldown = this.MOVE_COOLDOWN;
+            this.ship.x -= this.size;
+            this.ship.angle = -90;
+        }
     }
-    move_Left(){
-        
-    }
-    move_Right(){
-        
+
+    moveRight() {
+        if(this.moveCooldown <= 0) {
+            this.moveCooldown = this.MOVE_COOLDOWN;
+            this.ship.x += this.size;
+            this.ship.angle = 90;
+        }
     }
 }

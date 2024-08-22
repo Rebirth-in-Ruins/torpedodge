@@ -4,12 +4,8 @@ import Player from './player';
 class Game extends Phaser.Scene
 {
     private keys: any;
-    private ship: Phaser.GameObjects.Image;
-    private tile: number;
-    private moveCooldown: number = 0;
 
     private GRID_COUNT: number = 12;
-    private MOVE_COOLDOWN: number = 200;
 
     private player: Player;
 
@@ -27,13 +23,7 @@ class Game extends Phaser.Scene
         const g1 = this.add.grid(0, 0, width, height, width/this.GRID_COUNT, height/this.GRID_COUNT, 0x0000cc);
         g1.setOrigin(0,0);
 
-        this.tile = width/this.GRID_COUNT;
-
         this.player = new Player(this, 0, 0, width/this.GRID_COUNT);
-        this.player = new Player(this, 1, 1, width/this.GRID_COUNT);
-        this.player = new Player(this, 2, 2, width/this.GRID_COUNT);
-
-        this.player = new Player(this, 3, 3, width/this.GRID_COUNT);
 
         // this.ship = this.add.image(width/(this.GRID_COUNT*2), width/(this.GRID_COUNT*2), 'red');
         // this.ship.displayWidth = width*this.SCALE_FACTOR;
@@ -46,32 +36,20 @@ class Game extends Phaser.Scene
 
     update(time, delta) 
     {
-        if(this.moveCooldown >= 0) {
-            this.moveCooldown -= delta
+        if(this.keys.W.isDown) {
+            this.player.moveUp();
         }
-        console.log(this.tile);
+        if(this.keys.A.isDown) {
+            this.player.moveLeft();
+        }
+        if(this.keys.S.isDown) {
+            this.player.moveDown();
+        }
+        if(this.keys.D.isDown) {
+            this.player.moveRight();
+        }
 
-
-        if(this.keys.W.isDown && this.moveCooldown <= 0) {
-            this.moveCooldown = this.MOVE_COOLDOWN;
-            this.ship.y -= this.tile;
-            this.ship.angle = 0;
-        }
-        if(this.keys.A.isDown && this.moveCooldown <= 0) {
-            this.moveCooldown = this.MOVE_COOLDOWN;
-            this.ship.x -= this.tile;
-            this.ship.angle = -90;
-        }
-        if(this.keys.S.isDown && this.moveCooldown <= 0) {
-            this.moveCooldown = this.MOVE_COOLDOWN;
-            this.ship.y += this.tile;
-            this.ship.angle = 180;
-        }
-        if(this.keys.D.isDown && this.moveCooldown <= 0) {
-            this.moveCooldown = this.MOVE_COOLDOWN;
-            this.ship.x += this.tile;
-            this.ship.angle = 90;
-        }
+        this.player.update(time, delta);
     }
 }
 
