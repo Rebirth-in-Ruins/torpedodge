@@ -7,7 +7,7 @@ class Example extends Phaser.Scene
 
     preload ()
     {
-        this.load.image('red', 'asset/ship.png');
+        this.load.image('red', 'assets/Sprite-0001.png');
     }
 
     create ()
@@ -23,15 +23,19 @@ class Example extends Phaser.Scene
     {
         if(this.keys.W.isDown) {
             this.ship.y -= 1;
+            this.ship.angle = 0;
         }
         if(this.keys.A.isDown) {
             this.ship.x -= 1;
+            this.ship.angle = -90;
         }
         if(this.keys.S.isDown) {
             this.ship.y += 1;
+            this.ship.angle = 180;
         }
         if(this.keys.D.isDown) {
             this.ship.x += 1;
+            this.ship.angle = 90;
         }
     }
 }
