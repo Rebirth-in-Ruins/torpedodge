@@ -35,6 +35,11 @@ jobs:
         uses: azure/setup-kubectl@v1
         with:
           version: 'latest'
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+          kubectl config set-context --current --namespace=default
       - name: Deploy to Kubernetes
         run: |
           kubectl get pods
