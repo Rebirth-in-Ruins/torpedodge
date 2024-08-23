@@ -38,4 +38,4 @@ jobs:
           kubectl config set-context --current --namespace=default
       - name: Deploy to Kubernetes
         run: |
-          kubectl set image pod/torpedodge torpedodge=ghcr.io/rebirth-in-ruins/torpedodge-client:latest
+          kubectl rollout restart deployment/torpedodge

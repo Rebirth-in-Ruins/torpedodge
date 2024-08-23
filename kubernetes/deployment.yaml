@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: torpedodge
+  name: torpedodge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: torpedodge
+  template:
+    metadata:
+      labels:
+        app: torpedodge
+    spec:
+      containers:
+      - image: ghcr.io/rebirth-in-ruins/torpedodge-client:latest
+        name: torpedodge-client
+        ports:
+        - containerPort: 80
