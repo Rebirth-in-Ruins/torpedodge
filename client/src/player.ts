@@ -44,7 +44,7 @@ export default class Player {
         if(this.moveCooldown <= 0){
             this.moveCooldown = this.MOVE_COOLDOWN;
             this.ship.y -= this.size;
-            this.ship.angle = 0; 
+            this.ship.angle = 180; 
         }
     }
 
@@ -52,7 +52,7 @@ export default class Player {
         if(this.moveCooldown <= 0) {
             this.moveCooldown = this.MOVE_COOLDOWN;
             this.ship.y += this.size;
-            this.ship.angle = 180;
+            this.ship.angle = 0;
         }
     }
 
@@ -60,7 +60,7 @@ export default class Player {
         if(this.moveCooldown <= 0) {
             this.moveCooldown = this.MOVE_COOLDOWN;
             this.ship.x -= this.size;
-            this.ship.angle = -90;
+            this.ship.angle = 90;
         }
     }
 
@@ -68,7 +68,7 @@ export default class Player {
         if(this.moveCooldown <= 0) {
             this.moveCooldown = this.MOVE_COOLDOWN;
             this.ship.x += this.size;
-            this.ship.angle = 90;
+            this.ship.angle = -90;
         }
     }
 }
