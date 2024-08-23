@@ -20,7 +20,7 @@ export default class Player {
     }
     
     preload() {
-        this.scene.load.image('red', 'assets/Player_Boot.png');
+        this.scene.load.image('red', 'assets/ship (1).png');
     }
 
     create ()

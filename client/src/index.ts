@@ -11,7 +11,7 @@ class Game extends Phaser.Scene
 
     preload ()
     {
-        this.load.image('red', 'assets/Player_Boot.png');
+        this.load.image('red', 'assets/ship (1).png');
     }
 
     create ()
