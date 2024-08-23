@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: torpedodge.resamvi.io
+    http:
+      paths:
+      - backend:
+          service:
+            name: ingress
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+  tls:
+    - secretName: torpedodge-tls
+      hosts:
+        - torpedodge.resamvi.io
+
