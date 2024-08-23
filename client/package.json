@@ -1,8 +1,7 @@
 {
-  "name": "client",
-  "version": "1.0.0",
-  "description": "Browsergame",
-  "main": "index.js",
+  "name": "torpedodge-client",
+  "description": "Browser client for the torpedodge game",
+  "main": "src/index.ts",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc && vite build",
@@ -16,16 +15,16 @@
     "Game"
   ],
   "author": "Rebirth in Ruins",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/Rebirth-in-Ruins/untitled/issues"
   },
-  "homepage": "https://github.com/Rebirth-in-Ruins/untitled#readme",
+  "homepage": "https://torpedodge.resamvi.io",
   "dependencies": {
-    "phaser": "^3.80.1",
-    "vite": "^5.4.2"
+    "phaser": "^3.80.1"
   },
   "devDependencies": {
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2"
   }
 }
