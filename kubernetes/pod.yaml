@@ -6,7 +6,7 @@ metadata:
   name: torpedodge
 spec:
   containers:
-  - image: ghcr.io/rebirth-in-ruins/torpedodge-client:5814fe8efe643e9d57e26aea3aff24cd743ac02d
+  - image: ghcr.io/rebirth-in-ruins/torpedodge-client:latest
     imagePullPolicy: IfNotPresent
     name: torpedodge
     ports:

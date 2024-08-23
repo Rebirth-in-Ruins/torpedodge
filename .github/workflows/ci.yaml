@@ -27,10 +27,6 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}, ghcr.io/${{ github.repository_owner }}/${{ env.DOCKER_IMAGE_NAME }}:latest
-      - name: Add custom CA certificate
-        run: |
-          echo "${{ secrets.CERTIFICATE }}" | sudo tee /usr/local/share/ca-certificates/custom-ca.crt
-          sudo update-ca-certificates
       - name: Set up kubectl
         uses: azure/setup-kubectl@v1
         with:
@@ -42,4 +38,4 @@ jobs:
           kubectl config set-context --current --namespace=default
       - name: Deploy to Kubernetes
         run: |
-          kubectl get pods
+          kubectl set image pod/torpedodge torpedodge=ghcr.io/rebirth-in-ruins/torpedodge-client:latest
