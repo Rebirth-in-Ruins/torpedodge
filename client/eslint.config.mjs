@@ -8,14 +8,14 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   {
     rules: {
-      "no-console": "off",
-      "quotes": [
-        "error",
-        "single"
+      'no-console': 'off',
+      'quotes': [
+        'error',
+        'single'
       ],
-      "brace-style": [
-        "error",
-        "allman"
+      'brace-style': [
+        'error',
+        'allman'
       ]
     },
   },

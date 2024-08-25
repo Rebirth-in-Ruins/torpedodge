@@ -3,34 +3,48 @@ export default class Arrows {
     private scene : Phaser.Scene;
     private tileSize: number;
 
-    public downArrow;
+    public arrow: Phaser.GameObjects.Image;
 
     constructor(scene: Phaser.Scene,tilesize: number){
         this.scene = scene;
         this.tileSize = tilesize;
+        this.arrow = this.scene.add.image(this.tileSize*1 + this.tileSize, this.tileSize*0.5 + this.tileSize, 'arrow'); 
+        this.arrow.alpha = 0;
     }
     
-    showRight() {
-        let rightArrow = this.scene.add.image(this.tileSize*1 + this.tileSize, this.tileSize*0.5 + this.tileSize, 'arrow'); 
+    showRight() 
+    {
+        this.arrow.destroy();
+        this.arrow = this.scene.add.image(this.tileSize*1 + this.tileSize, this.tileSize*0.5 + this.tileSize, 'arrow'); 
+        this.arrow.alpha = 1;
     }
 
-    showLeft() {
-        let leftArrow = this.scene.add.image(this.tileSize*0 + this.tileSize, this.tileSize*0.5 + this.tileSize, 'arrow'); 
-        leftArrow.angle = 180;
+    showLeft() 
+    {
+        this.arrow.destroy();
+        this.arrow = this.scene.add.image(this.tileSize*0 + this.tileSize, this.tileSize*0.5 + this.tileSize, 'arrow'); 
+        this.arrow.angle = 180;
+        this.arrow.alpha = 1;
     }
 
-    showUp() {
-        let upArrow = this.scene.add.image(this.tileSize*0.5 + this.tileSize, this.tileSize*0 + this.tileSize, 'arrow');
-        upArrow.angle = -90;
+    showUp() 
+    {
+        this.arrow.destroy();
+        this.arrow = this.scene.add.image(this.tileSize*0.5 + this.tileSize, this.tileSize*0 + this.tileSize, 'arrow');
+        this.arrow.angle = -90;
+        this.arrow.alpha = 1;
     }
 
-    showDown() {
-        this.downArrow = this.scene.add.image(this.tileSize*0.5 + this.tileSize, this.tileSize*1 + this.tileSize, 'arrow');
-        this.downArrow.angle = 90;
-        
+    showDown()
+    {
+        this.arrow.destroy();
+        this.arrow = this.scene.add.image(this.tileSize*0.5 + this.tileSize, this.tileSize*1 + this.tileSize, 'arrow');
+        this.arrow.angle = 90;
+        this.arrow.alpha = 1;
     }
 
-    removeArrows(){
-
+    removeArrows() 
+    {
+        this.arrow.alpha = 0;
     }
 }
