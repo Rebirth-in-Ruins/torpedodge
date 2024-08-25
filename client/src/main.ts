@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import Player from './player';
 import CollisionDetection from './collision';
 import ProgressBar from './progressbar';
-import Arrows from './arrows';
 
 class Game extends Phaser.Scene
 {
@@ -39,10 +38,6 @@ class Game extends Phaser.Scene
         this.player = new Player(this, 6, 6, width/this.GRID_COUNT);
         const object = new Player(this, 2, 2, width/this.GRID_COUNT);
 
-        const arr = new Arrows(this, width/this.GRID_COUNT);
-        arr.showRight();
-        arr.showLeft();
-
 
         this.collisionDetection = new CollisionDetection();
         this.collisionDetection.add(this.player);
@@ -55,7 +50,7 @@ class Game extends Phaser.Scene
         // graphics.fillCircleShape(circle);
     }
 
-    update(time: number, delta: number) 
+    update(_: number, delta: number) 
     {
         this.currentTurnDuration += delta;
         this.progressBar.setProgress(this.currentTurnDuration / this.TURN_DURATION);
@@ -83,8 +78,6 @@ class Game extends Phaser.Scene
         {
             this.player.moveRight();
         }
-
-        this.player.update();
     }
 }
 
@@ -93,7 +86,7 @@ const config = {
     width: 800,
     height: 800,
     scene: Game,
-    parent: "game",
+    parent: 'game',
     pixelArt: true,
     physics: {
         default: 'arcade',
@@ -106,4 +99,4 @@ const config = {
     }
 };
 
-const game = new Phaser.Game(config);
+new Phaser.Game(config);

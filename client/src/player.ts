@@ -1,4 +1,4 @@
-import Arrows from './arrows';
+import Arrow from './arrow';
 
 export default class Player
 {
@@ -8,26 +8,26 @@ export default class Player
     private y: number;
 
     private ship: Phaser.GameObjects.Image;
-    private moveCooldown: number = 0;
+    private arrow: Arrow;
 
-    private MOVE_COOLDOWN: number = 200; // in ms
     private SCALE_FACTOR: number = 0.8;
-
-    private arrow : Arrows;
 
     private direction: Direction;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, size: number) {
+    constructor(scene: Phaser.Scene, x: number, y: number, size: number) 
+    {
         this.scene = scene;
         this.size = size;
         this.x = x;
         this.y = y;
         this.direction = Direction.Stay;
 
+        this.arrow = new Arrow(scene, size);
         this.create();
     }
     
-    preload() {
+    preload() 
+    {
         this.scene.load.image('red', 'assets/ship (1).png');
     }
 
@@ -38,16 +38,6 @@ export default class Player
         this.ship = this.scene.add.image(this.x * this.size + offset, this.y * this.size + offset, 'red');
         this.ship.displayWidth = this.size * this.SCALE_FACTOR;
         this.ship.displayHeight = this.size * this.SCALE_FACTOR;
-    }
-
-    update()
-    {
-        
-    }
-
-    getCoordinates(): {x: number, y: number} 
-    {
-        return {x: this.x, y: this.y}
     }
 
     getX(): number 
@@ -64,26 +54,28 @@ export default class Player
     {
         this.ship.angle = 180; 
         this.direction = Direction.Up;
+        this.arrow.pointUp(this.x, this.y);
     }
 
     moveDown() 
     {
         this.ship.angle = 0;
         this.direction = Direction.Down;
+        this.arrow.pointDown(this.x, this.y);
     }
 
     moveLeft() 
     {
         this.ship.angle = 90;
         this.direction = Direction.Left;
-
+        this.arrow.pointLeft(this.x, this.y);
     }
 
     moveRight() 
     {
         this.ship.angle = -90;
         this.direction = Direction.Right;
-
+        this.arrow.pointRight(this.x, this.y);
     }
 
     move()
@@ -92,7 +84,7 @@ export default class Player
         {
             case Direction.Down:
                 this.ship.y += this.size;
-                this.y -= 1;
+                this.y += 1;
                 break;
             case Direction.Left:
                 this.ship.x -= this.size;
@@ -104,9 +96,11 @@ export default class Player
                 break;
             case Direction.Up:
                 this.ship.y -= this.size;
-                this.y += 1;
+                this.y -= 1;
                 break;
         }
+        
+        this.arrow.removeArrow();
         this.direction = Direction.Stay;
     }
 }

@@ -1,7 +1,7 @@
 {
   "name": "torpedodge-client",
   "description": "Browser client for the torpedodge game",
-  "main": "src/index.ts",
+  "main": "src/main.ts",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc && vite build",
