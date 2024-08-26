@@ -4,8 +4,8 @@ export default class Player
 {
     private scene: Phaser.Scene;
     private size: number;
-    private x: number;
-    private y: number;
+    private _x: number;
+    private _y: number;
 
     private ship: Phaser.GameObjects.Image;
     private arrow: Arrow;
@@ -18,85 +18,80 @@ export default class Player
     {
         this.scene = scene;
         this.size = size;
-        this.x = x;
-        this.y = y;
+        this._x = x;
+        this._y = y;
         this.direction = Direction.Stay;
 
         this.arrow = new Arrow(scene, size);
         this.create();
-    }
-    
-    preload() 
-    {
-        this.scene.load.image('red', 'assets/ship (1).png');
     }
 
     create ()
     {
         const offset = this.size/2;
 
-        this.ship = this.scene.add.image(this.x * this.size + offset, this.y * this.size + offset, 'red');
+        this.ship = this.scene.add.image(this._x * this.size + offset, this._y * this.size + offset, 'red');
         this.ship.displayWidth = this.size * this.SCALE_FACTOR;
         this.ship.displayHeight = this.size * this.SCALE_FACTOR;
     }
 
-    getX(): number 
+    get x(): number 
     {
-        return this.x;
+        return this._x;
     }
 
-    getY(): number 
+    get y(): number 
     {
-        return this.y;
+        return this._y;
     }
 
     moveUp() 
     {
         this.ship.angle = 180; 
         this.direction = Direction.Up;
-        this.arrow.pointUp(this.x, this.y);
+        this.arrow.pointUp(this._x, this._y);
     }
 
     moveDown() 
     {
         this.ship.angle = 0;
         this.direction = Direction.Down;
-        this.arrow.pointDown(this.x, this.y);
+        this.arrow.pointDown(this._x, this._y);
     }
 
     moveLeft() 
     {
         this.ship.angle = 90;
         this.direction = Direction.Left;
-        this.arrow.pointLeft(this.x, this.y);
+        this.arrow.pointLeft(this._x, this._y);
     }
 
     moveRight() 
     {
         this.ship.angle = -90;
         this.direction = Direction.Right;
-        this.arrow.pointRight(this.x, this.y);
+        this.arrow.pointRight(this._x, this._y);
     }
 
-    move()
+    tick()
     {
         switch(this.direction)
         {
             case Direction.Down:
                 this.ship.y += this.size;
-                this.y += 1;
+                this._y += 1;
                 break;
             case Direction.Left:
                 this.ship.x -= this.size;
-                this.x -= 1;
+                this._x -= 1;
                 break;
             case Direction.Right:
                 this.ship.x += this.size;
-                this.x += 1;
+                this._x += 1;
                 break;
             case Direction.Up:
                 this.ship.y -= this.size;
-                this.y -= 1;
+                this._y -= 1;
                 break;
         }
         
