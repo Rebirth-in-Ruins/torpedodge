@@ -2,12 +2,13 @@ import Phaser from 'phaser';
 import Player from './player';
 import ProgressBar from './progressbar';
 import Simulation from './simulation';
+import Battlefield from './battlefield';
+import { Direction } from './direction';
 
 class Game extends Phaser.Scene
 {
     private keys: any;
 
-    private GRID_COUNT: number = 12;
     private TURN_DURATION: number = 1500;
 
     private currentTurnDuration: number = 0;
@@ -15,36 +16,43 @@ class Game extends Phaser.Scene
     private player: Player;
     private progressBar: ProgressBar;
     private simulation: Simulation;
+    private battlefield: Battlefield;
+
+    private mainPlayer: Player;
+    private bombs: Array<Bomb>
+    private explosions: Array<Explosion>
+
+    private direction: Direction;
 
     preload ()
     {
         this.load.image('arrow', 'assets/arrow.png');
-        this.load.image('red', 'assets/ship (1).png');
+        this.load.image('ship', 'assets/ship (1).png');
         this.load.image('bomb', 'assets/bomb.png');
         this.load.image('explosion', 'assets/explosion.png');
     }
-
 
     create ()
     {
         this.keys = this.input.keyboard.addKeys('W,A,S,D,SPACE');
 
         const { width, height } = this.sys.game.canvas;
-        const tileSize = width/this.GRID_COUNT;
 
-        const g1 = this.add.grid(0, 0, width, height, tileSize, height/this.GRID_COUNT, 0x0000cc);
-        g1.setOrigin(0,0);
+        this.battlefield = new Battlefield(this, width, height);
+        this.player = this.battlefield.spawnPlayer("main player", 2, 2);
 
-        this.player = new Player(this, 6, 6, tileSize);
+        this.direction = Direction.Stay;
+        // this.battlefield.getPlayer(this.player);
 
-        this.simulation = new Simulation(this, this.player, tileSize)
-        this.simulation.spawnPlayer(2, 2)
+        // this.map.move(2, 2, Up);
+        // this.map.remove(2, 2);
+        // let player = this.map.get(2, 2);
+
+        // this.player = new Player(this, "main player", this.map.tileSize);
+
+        this.simulation = new Simulation(this, this.player, this.battlefield.tileSize)
 
         this.progressBar = new ProgressBar(this, width, height);
-
-        // const circle = new Phaser.Geom.Circle(100, 100, 10);
-        // const graphics = this.add.graphics({ fillStyle: { color: 0xff0000 } });
-        // graphics.fillCircleShape(circle);
     }
 
     update(_: number, delta: number) 
@@ -56,36 +64,77 @@ class Game extends Phaser.Scene
         if(this.currentTurnDuration > this.TURN_DURATION)
         {
             this.currentTurnDuration = 0;
-            this.simulation.tick();
+            // this.simulation.tick();
+            this.tick();
         }
 
         // Inputs
         if(this.keys.W.isDown) 
         {
-            this.player.moveUp();
+            this.player.lookUp();
+            this.direction = Direction.Up;
         }
         if(this.keys.A.isDown) 
         {
-            this.player.moveLeft();
+            this.player.lookLeft();
+            this.direction = Direction.Left;
         }
         if(this.keys.S.isDown)
         {
-            this.player.moveDown();
+            this.player.lookDown();
+            this.direction = Direction.Down;
         }
         if(this.keys.D.isDown) 
         {
-            this.player.moveRight();
+            this.player.lookRight();
+            this.direction = Direction.Right;
         }
         if(this.keys.SPACE.isDown) 
         {
             this.simulation.plantBomb(this.player);
         }
     }
+
+    // Apply simulation
+    // - Move
+    // - Check collision
+    // - Detonate bombs
+    // - Kill detonated players
+    tick()
+    {
+        // this.mainPlayer.tick(); // Player moves
+        // Move
+        for(let player of this.battlefield.players)
+        {
+            if(player.name == "main player") {
+                this.battlefield.move(player, this.direction)
+                this.direction = Direction.Stay;
+            }
+
+            player.tick();
+        }
+
+        // this.explosions.forEach(v => v.tick()) // All explosions count down
+        // this.bombs.forEach(v => v.tick()); // All bombs count down
+
+        // Handle bombs
+        // const detonated = this.bombs.filter(v => v.denonated);
+        
+        // detonated.forEach(v => this.spawnCrossExplosion(v.x, v.y));     // Spawn explosions on detonated bombs
+        // detonated.forEach(v => v.destroy());                            // Remove detonated bombs
+        // this.bombs = this.bombs.filter(v => !v.denonated)               // Keep the undetonated bombs
+
+        // Handle explosions
+        // const decayed = this.explosions.filter(v => v.decayed);
+        // decayed.forEach(v => v.destroy());
+        // this.explosions = this.explosions.filter(v => !v.decayed);
+    }
 }
 
 const config = {
     type: Phaser.AUTO,
-    width: 800,
+    backgroundColor: '#0000cc',
+    width: 1000,
     height: 800,
     scene: Game,
     parent: 'game',

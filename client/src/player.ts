@@ -1,109 +1,79 @@
 import Arrow from './arrow';
+import Position from './position';
 
-export default class Player
+export default class Player implements Position
 {
     private scene: Phaser.Scene;
     private size: number;
-    private _x: number;
-    private _y: number;
 
     private ship: Phaser.GameObjects.Image;
     private arrow: Arrow;
 
     private SCALE_FACTOR: number = 0.8;
 
-    private direction: Direction;
+    private _name: String; // TODO: Name tag
 
-    constructor(scene: Phaser.Scene, x: number, y: number, size: number) 
+    constructor(scene: Phaser.Scene, name: String, size: number) 
     {
         this.scene = scene;
         this.size = size;
-        this._x = x;
-        this._y = y;
-        this.direction = Direction.Stay;
+        this._name = name;
 
         this.arrow = new Arrow(scene, size);
-        this.create();
-    }
 
-    create ()
-    {
-        const offset = this.size/2;
-
-        this.ship = this.scene.add.image(this._x * this.size + offset, this._y * this.size + offset, 'red');
+        // Spawn somewhere far away and let the map place it into correct position
+        this.ship = this.scene.add.image(-100, -100, 'ship');
         this.ship.displayWidth = this.size * this.SCALE_FACTOR;
         this.ship.displayHeight = this.size * this.SCALE_FACTOR;
     }
 
-    get x(): number 
-    {
-        return this._x;
+    set x(value: number) {
+        this.ship.x = value;
     }
 
-    get y(): number 
-    {
-        return this._y;
+    get x() {
+        return this.ship.x;
     }
 
-    moveUp() 
+    set y(value: number) {
+        this.ship.y = value;
+    }
+
+    get y() {
+        return this.ship.y;
+    }
+
+    get name() {
+        return this._name;
+    }
+
+    lookUp() 
     {
         this.ship.angle = 180; 
-        this.direction = Direction.Up;
-        this.arrow.pointUp(this._x, this._y);
+        this.arrow.pointUp(this.x, this.y);
     }
 
-    moveDown() 
+    lookDown() 
     {
         this.ship.angle = 0;
-        this.direction = Direction.Down;
-        this.arrow.pointDown(this._x, this._y);
+        this.arrow.pointDown(this.x, this.y);
     }
 
-    moveLeft() 
+    lookLeft() 
     {
         this.ship.angle = 90;
-        this.direction = Direction.Left;
-        this.arrow.pointLeft(this._x, this._y);
+        this.arrow.pointLeft(this.x, this.y);
     }
 
-    moveRight() 
+    lookRight() 
     {
         this.ship.angle = -90;
-        this.direction = Direction.Right;
-        this.arrow.pointRight(this._x, this._y);
+        this.arrow.pointRight(this.x, this.y);
     }
 
     tick()
     {
-        switch(this.direction)
-        {
-            case Direction.Down:
-                this.ship.y += this.size;
-                this._y += 1;
-                break;
-            case Direction.Left:
-                this.ship.x -= this.size;
-                this._x -= 1;
-                break;
-            case Direction.Right:
-                this.ship.x += this.size;
-                this._x += 1;
-                break;
-            case Direction.Up:
-                this.ship.y -= this.size;
-                this._y -= 1;
-                break;
-        }
-        
         this.arrow.removeArrow();
-        this.direction = Direction.Stay;
     }
 }
 
-enum Direction {
-    Up = 1,
-    Down,
-    Left,
-    Right,
-    Stay,
-}
