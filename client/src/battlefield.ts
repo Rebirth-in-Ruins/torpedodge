@@ -1,7 +1,7 @@
-import Player from "./player";
-import Position from "./position";
-import Coordinates from "./coordinates";
-import { Direction } from "./direction";
+import Player from './player';
+import Position from './position';
+import Coordinates from './coordinates';
+import { Direction } from './direction';
 
 export default class Battlefield {
     private GRID_PERCENTAGE = 0.85;
@@ -43,10 +43,9 @@ export default class Battlefield {
             }
             this.map.push(p)
         }
-
     }
 
-    spawnPlayer(name: String, x: number, y: number): Player
+    spawnPlayer(name: string, x: number, y: number): Player
     {
         const player = new Player(this.scene, name, this.tileSize);
         this._players.set(player, new Coordinates(x, y));
@@ -55,7 +54,7 @@ export default class Battlefield {
         this.map[x][y] = player;
 
         // Position object correctly on the grid
-        let [worldX, worldY] = this.gridToWorld(x, y);
+        const [worldX, worldY] = this.gridToWorld(x, y);
         player.x = worldX;
         player.y = worldY;
 
@@ -78,7 +77,7 @@ export default class Battlefield {
         this._players.set(player, neww)
 
         // Update image position
-        let [worldX, worldY] = this.gridToWorld(neww.x, neww.y);
+        const [worldX, worldY] = this.gridToWorld(neww.x, neww.y);
         player.x = worldX;
         player.y = worldY;
     }

@@ -42,7 +42,7 @@ class Game extends Phaser.Scene
         const { width, height } = this.sys.game.canvas;
 
         this.battlefield = new Battlefield(this, width, height);
-        this.player = this.battlefield.spawnPlayer("main player", 2, 2);
+        this.player = this.battlefield.spawnPlayer('main player', 2, 2);
 
         this.direction = Direction.Stay;
         // this.battlefield.getPlayer(this.player);
@@ -107,10 +107,11 @@ class Game extends Phaser.Scene
     {
         // this.mainPlayer.tick(); // Player moves
         // Move
-        for(let player of this.battlefield.players)
+        for(const player of this.battlefield.players)
         {
-            if(player.name == "main player") {
-                this.battlefield.move(player, this.direction)
+            if(player.name == 'main player')
+            {
+                this.battlefield.move(player, this.direction);
                 this.direction = Direction.Stay;
             }
 

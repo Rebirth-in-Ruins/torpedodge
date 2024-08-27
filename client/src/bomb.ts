@@ -6,9 +6,6 @@ export default class Bomb
     private text: Phaser.GameObjects.Text;
     private image: Phaser.GameObjects.Image;
 
-    private plantedX: number;
-    private plantedY: number;
-
     constructor(scene: Phaser.Scene, playerX: number, playerY: number, size: number)
     {
         let x = playerX * size + size*0.5;
@@ -27,16 +24,6 @@ export default class Bomb
             .setFontFamily('Arial')
             .setStroke('black', 3)
             .setOrigin(0.5, 0.5);
-    }
-
-    get x(): number 
-    {
-        return this.plantedX;
-    }
-
-    get y(): number 
-    {
-        return this.plantedY;
     }
 
     get denonated(): boolean

@@ -1,79 +1,106 @@
-import Arrow from './arrow';
 import Position from './position';
+import { Direction } from './direction';
 
 export default class Player implements Position
 {
     private scene: Phaser.Scene;
-    private size: number;
+    private tileSize: number;
 
     private ship: Phaser.GameObjects.Image;
-    private arrow: Arrow;
+    private arrow: Phaser.GameObjects.Image;
 
     private SCALE_FACTOR: number = 0.8;
 
-    private _name: String; // TODO: Name tag
+    private _name: string; // TODO: Name tag
 
-    constructor(scene: Phaser.Scene, name: String, size: number) 
+    constructor(scene: Phaser.Scene, name: string, tileSize: number) 
     {
         this.scene = scene;
-        this.size = size;
+        this.tileSize = tileSize;
         this._name = name;
 
-        this.arrow = new Arrow(scene, size);
+        // this.arrow = new Arrow(scene, size);
+        this.arrow = this.scene.add.image(-100, -100, 'arrow');
 
         // Spawn somewhere far away and let the map place it into correct position
         this.ship = this.scene.add.image(-100, -100, 'ship');
-        this.ship.displayWidth = this.size * this.SCALE_FACTOR;
-        this.ship.displayHeight = this.size * this.SCALE_FACTOR;
+        this.ship.displayWidth = this.tileSize * this.SCALE_FACTOR;
+        this.ship.displayHeight = this.tileSize * this.SCALE_FACTOR;
+    }
+    tick()
+    {
+        this.arrow.alpha = 0;
     }
 
-    set x(value: number) {
-        this.ship.x = value;
-    }
+    placeArrow(direction: Direction)
+    {
+        this.arrow.alpha = 1;
 
-    get x() {
-        return this.ship.x;
-    }
-
-    set y(value: number) {
-        this.ship.y = value;
-    }
-
-    get y() {
-        return this.ship.y;
-    }
-
-    get name() {
-        return this._name;
+        switch(direction)
+        {
+            case Direction.Up:
+                this.arrow.x = this.ship.x;
+                this.arrow.y = this.ship.y - this.tileSize*0.5;
+                break;
+            case Direction.Down:
+                this.arrow.x = this.ship.x;
+                this.arrow.y = this.ship.y + this.tileSize*0.5;
+                break;
+            case Direction.Left:
+                this.arrow.x = this.ship.x - this.tileSize*0.5;
+                this.arrow.y = this.ship.y;
+                break;
+            case Direction.Right:
+                this.arrow.x = this.ship.x + this.tileSize*0.5;
+                this.arrow.y = this.ship.y;
+                break;
+            default:
+                this.arrow.alpha = 0;
+                break;
+        }
     }
 
     lookUp() 
     {
         this.ship.angle = 180; 
-        this.arrow.pointUp(this.x, this.y);
+        this.arrow.angle = -90;
+        this.placeArrow(Direction.Up);
     }
 
     lookDown() 
     {
         this.ship.angle = 0;
-        this.arrow.pointDown(this.x, this.y);
+        this.arrow.angle = 90;
+        this.placeArrow(Direction.Down);
     }
 
     lookLeft() 
     {
         this.ship.angle = 90;
-        this.arrow.pointLeft(this.x, this.y);
+        this.arrow.angle = 180;
+        this.placeArrow(Direction.Left);
     }
 
     lookRight() 
     {
         this.ship.angle = -90;
-        this.arrow.pointRight(this.x, this.y);
+        this.arrow.angle = 0;
+        this.placeArrow(Direction.Right);
     }
 
-    tick()
+    set x(value: number)
     {
-        this.arrow.removeArrow();
+        this.ship.x = value;
+    }
+
+    set y(value: number)
+    {
+        this.ship.y = value
+    }
+
+    get name()
+    {
+        return this._name;
     }
 }
 
