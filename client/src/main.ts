@@ -42,7 +42,6 @@ class Game extends Phaser.Scene
 
         const { width, height } = this.sys.game.canvas;
 
-
         this.battlefield = new Battlefield(this, width, height);
         this.player = this.battlefield.spawnPlayer('main player', 2, 2);
 
@@ -51,8 +50,6 @@ class Game extends Phaser.Scene
 
         // this.map.remove(2, 2);
         // let player = this.map.get(2, 2);
-
-        // this.player = new Player(this, "main player", this.map.tileSize);
 
         this.simulation = new Simulation(this, this.player, this.battlefield.tileSize)
 
@@ -128,7 +125,6 @@ class Game extends Phaser.Scene
     // - Kill detonated players
     tick()
     {
-        // this.mainPlayer.tick(); // Player moves
         // Move
         for(const player of this.battlefield.players)
         {

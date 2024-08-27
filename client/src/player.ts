@@ -3,29 +3,29 @@ import { Direction } from './direction';
 
 export default class Player implements Position
 {
-    private scene: Phaser.Scene;
     private tileSize: number;
 
     private ship: Phaser.GameObjects.Image;
     private arrow: Phaser.GameObjects.Image;
 
-    private SCALE_FACTOR: number = 0.8;
+    private nameTag: Phaser.GameObjects.Text;
 
-    private _name: string; // TODO: Name tag
+    private SCALE_FACTOR: number = 0.8;
+    private NAMETAG_OFFSET: number = -20;
 
     constructor(scene: Phaser.Scene, name: string, tileSize: number) 
     {
-        this.scene = scene;
         this.tileSize = tileSize;
-        this._name = name;
-
-        // this.arrow = new Arrow(scene, size);
-        this.arrow = this.scene.add.image(-100, -100, 'arrow');
 
         // Spawn somewhere far away and let the map place it into correct position
-        this.ship = this.scene.add.image(-100, -100, 'ship');
+        this.ship = scene.add.image(-100, -100, 'ship');
         this.ship.displayWidth = this.tileSize * this.SCALE_FACTOR;
         this.ship.displayHeight = this.tileSize * this.SCALE_FACTOR;
+
+        this.arrow = scene.add.image(-100, -100, 'arrow');
+
+        this.nameTag = scene.add.text(10, 10, name, { font: '16px monospace', strokeThickness: 2, stroke: '#000'});
+        this.nameTag.setOrigin(0.5, 1);
     }
     tick()
     {
@@ -91,16 +91,19 @@ export default class Player implements Position
     set x(value: number)
     {
         this.ship.x = value;
+        this.nameTag.x = value;
     }
 
     set y(value: number)
     {
         this.ship.y = value
+        this.nameTag.y = value + this.NAMETAG_OFFSET;
     }
 
+    // Used to identify the main player lol TODO
     get name()
     {
-        return this._name;
+        return this.nameTag.text;
     }
 }
 
