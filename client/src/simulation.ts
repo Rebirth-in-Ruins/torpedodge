@@ -1,5 +1,3 @@
-import Bomb from './bomb';
-import Explosion from './explosion';
 import Player from './player';
 
 export default class Simulation
@@ -10,10 +8,9 @@ export default class Simulation
 
     constructor(scene: Phaser.Scene, player: Player, tileSize: number)
     {
-        this.mainPlayer = player;
-
-        this.bombs = [];
-        this.explosions = [];
+        // this.mainPlayer = player;
+        // this.bombs = [];
+        // this.explosions = [];
         this.scene = scene;
         this.tileSize = tileSize;
     }
@@ -29,12 +26,12 @@ export default class Simulation
 
     plantBomb(player: Player)
     {
-        this.bombs.push(new Bomb(this.scene, player.x, player.y, this.tileSize))
+        // this.bombs.push(new Bomb(this.scene, player.x, player.y, this.tileSize))
     }
 
     spawnCrossExplosion(x: number, y: number)
     {
-        const explosion = new Explosion(this.scene, x, y, this.tileSize);
-        this.explosions.push(explosion);
+        // const explosion = new Explosion(this.scene, x, y, this.tileSize);
+        // this.explosions.push(explosion);
     }
 }

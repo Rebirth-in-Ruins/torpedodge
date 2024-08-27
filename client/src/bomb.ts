@@ -11,8 +11,8 @@ export default class Bomb
         let x = playerX * size + size*0.5;
         let y = playerY * size + size*0.5;
 
-        this.plantedX = playerX;
-        this.plantedY = playerY;
+        // this.plantedX = playerX;
+        // this.plantedY = playerY;
 
         this.image = scene.add.image(x, y, 'bomb');
     

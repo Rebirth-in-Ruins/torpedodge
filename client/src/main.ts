@@ -4,6 +4,7 @@ import ProgressBar from './progressbar';
 import Simulation from './simulation';
 import Battlefield from './battlefield';
 import { Direction } from './direction';
+import Leaderboard from './leaderboard';
 
 class Game extends Phaser.Scene
 {
@@ -18,7 +19,7 @@ class Game extends Phaser.Scene
     private simulation: Simulation;
     private battlefield: Battlefield;
 
-    private mainPlayer: Player;
+    private leaderboard: Leaderboard;
     // private bombs: Array<Bomb>
     // private explosions: Array<Explosion>
 
@@ -31,8 +32,8 @@ class Game extends Phaser.Scene
         this.load.image('bomb', 'assets/bomb.png');
         this.load.image('explosion', 'assets/explosion.png');
 
-        this.load.path = 'assets';
-        this.load.aseprite('bomba', 'bomba.png', 'bomba.json');
+        // this.load.path = 'assets';
+        // this.load.aseprite('bomba', 'bomba.png', 'bomba.json');
     }
 
     create ()
@@ -40,6 +41,7 @@ class Game extends Phaser.Scene
         this.keys = this.input.keyboard.addKeys('W,A,S,D,SPACE');
 
         const { width, height } = this.sys.game.canvas;
+
 
         this.battlefield = new Battlefield(this, width, height);
         this.player = this.battlefield.spawnPlayer('main player', 2, 2);
@@ -55,6 +57,29 @@ class Game extends Phaser.Scene
         this.simulation = new Simulation(this, this.player, this.battlefield.tileSize)
 
         this.progressBar = new ProgressBar(this, width, height);
+        this.leaderboard = new Leaderboard(this, width);
+        this.leaderboard.render([
+            {
+                name: 'Armadillo',
+                score: 12,
+            },
+            {
+                name: 'Connection Lost',
+                score: 1337,  
+            },
+            {
+                name: 'Aeroreido',
+                score: 4000,
+            },
+            {
+                name: 'Cpt Connection',
+                score: 120,
+            },
+            {
+                name: 'xd',
+                score: 120,
+            },
+        ])
     }
 
     update(_: number, delta: number) 
