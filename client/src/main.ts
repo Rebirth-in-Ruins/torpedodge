@@ -30,6 +30,9 @@ class Game extends Phaser.Scene
         this.load.image('ship', 'assets/ship (1).png');
         this.load.image('bomb', 'assets/bomb.png');
         this.load.image('explosion', 'assets/explosion.png');
+
+        this.load.path = 'assets';
+        this.load.aseprite('bomba', 'bomba.png', 'bomba.json');
     }
 
     create ()
