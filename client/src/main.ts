@@ -19,8 +19,8 @@ class Game extends Phaser.Scene
     private battlefield: Battlefield;
 
     private mainPlayer: Player;
-    private bombs: Array<Bomb>
-    private explosions: Array<Explosion>
+    // private bombs: Array<Bomb>
+    // private explosions: Array<Explosion>
 
     private direction: Direction;
 

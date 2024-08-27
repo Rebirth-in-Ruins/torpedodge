@@ -3,7 +3,8 @@ import Position from './position';
 import Coordinates from './coordinates';
 import { Direction } from './direction';
 
-export default class Battlefield {
+export default class Battlefield
+{
     private GRID_PERCENTAGE = 0.85;
     private GRID_COUNT: number = 12;
 
@@ -61,13 +62,14 @@ export default class Battlefield {
         return player;
     }
 
-    getPlayer(_: Player)
+    getPlayer()
     {
         // let coords = this._players.get(input);
         // let { x, y } = coords.above()
     }
 
-    moveAndCollide(player: Player, direction: Direction) {
+    moveAndCollide(player: Player, direction: Direction)
+    {
         const old = this._players.get(player);
         const neww = old.move(direction);
 
@@ -104,7 +106,7 @@ export default class Battlefield {
 
     get players(): Player[]
     {
-        return Array.from(this._players).map(([player, _]) => player);
+        return Array.from(this._players).map(([player]) => player);
     }
 
 
