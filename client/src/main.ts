@@ -47,7 +47,6 @@ class Game extends Phaser.Scene
         this.direction = Direction.Stay;
         // this.battlefield.getPlayer(this.player);
 
-        // this.map.move(2, 2, Up);
         // this.map.remove(2, 2);
         // let player = this.map.get(2, 2);
 
@@ -67,7 +66,6 @@ class Game extends Phaser.Scene
         if(this.currentTurnDuration > this.TURN_DURATION)
         {
             this.currentTurnDuration = 0;
-            // this.simulation.tick();
             this.tick();
         }
 
@@ -111,7 +109,7 @@ class Game extends Phaser.Scene
         {
             if(player.name == 'main player')
             {
-                this.battlefield.move(player, this.direction);
+                this.battlefield.moveAndCollide(player, this.direction);
                 this.direction = Direction.Stay;
             }
 

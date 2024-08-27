@@ -61,15 +61,19 @@ export default class Battlefield {
         return player;
     }
 
-    getPlayer(input: Player)
+    getPlayer(_: Player)
     {
-        let coords = this._players.get(input);
-        let { x, y } = coords.above()
+        // let coords = this._players.get(input);
+        // let { x, y } = coords.above()
     }
 
-    move(player: Player, direction: Direction) {
-        let old = this._players.get(player);
-        let neww = old.move(direction);
+    moveAndCollide(player: Player, direction: Direction) {
+        const old = this._players.get(player);
+        const neww = old.move(direction);
+
+        // Collision
+        if(this.outOfBounds(neww) || this.map[neww.x][neww.y] != null)
+            return
 
         // Update data structures
         this.map[old.x][old.y] = null;
@@ -82,10 +86,18 @@ export default class Battlefield {
         player.y = worldY;
     }
 
+    outOfBounds(coords: Coordinates): boolean
+    {
+        const horizontal = coords.x < 0 || this.GRID_COUNT <= coords.x;
+        const vertical = coords.y < 0 || this.GRID_COUNT <= coords.y;
+
+        return horizontal || vertical;
+    }
+
     gridToWorld(x: number, y: number)
     {
-        let worldX = x * this._tileSize + this._tileSize*0.5 + this.MARGIN_LEFT;
-        let worldY = y * this._tileSize + this._tileSize*0.5 + this.MARGIN_TOP;
+        const worldX = x * this._tileSize + this._tileSize*0.5 + this.MARGIN_LEFT;
+        const worldY = y * this._tileSize + this._tileSize*0.5 + this.MARGIN_TOP;
 
         return [worldX, worldY];
     }
