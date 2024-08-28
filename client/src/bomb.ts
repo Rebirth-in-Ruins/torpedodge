@@ -20,7 +20,7 @@ export default class Bomb
             .setOrigin(0.5, 0.5);
     }
 
-    get denonated(): boolean
+    get detonated(): boolean
     {
         return this.countDown <= 0
     }

@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import Player from './player';
 import ProgressBar from './progressbar';
-import Simulation from './simulation';
 import Battlefield from './battlefield';
+import Explosion from './explosion';
 import { Direction } from './direction';
 import Leaderboard from './leaderboard';
 
@@ -16,11 +16,9 @@ class Game extends Phaser.Scene
 
     private player: Player;
     private progressBar: ProgressBar;
-    private simulation: Simulation;
     private battlefield: Battlefield;
 
     private leaderboard: Leaderboard;
-    // private bombs: Array<Bomb>
     // private explosions: Array<Explosion>
 
     private direction: Direction;
@@ -32,8 +30,8 @@ class Game extends Phaser.Scene
         this.load.image('bomb', 'assets/bomb.png');
         this.load.image('explosion', 'assets/explosion.png');
 
-        // this.load.path = 'assets';
-        // this.load.aseprite('bomba', 'bomba.png', 'bomba.json');
+        // this.load.aseprite('bomba', 'Bomba.png', 'Bomba.json');
+        // this.anims.createFromAseprite('bomba');
     }
 
     create ()
@@ -48,10 +46,11 @@ class Game extends Phaser.Scene
         this.direction = Direction.Stay;
         // this.battlefield.getPlayer(this.player);
 
-        // this.map.remove(2, 2);
-        // let player = this.map.get(2, 2);
+        // this.add.sprite(50, 50).play();
 
-        this.simulation = new Simulation(this, this.player, this.battlefield.tileSize)
+        // this.map.remove(2, 2);
+
+        new Explosion(this);
 
         this.progressBar = new ProgressBar(this, width, height);
         this.leaderboard = new Leaderboard(this, width);
@@ -119,23 +118,49 @@ class Game extends Phaser.Scene
     }
 
     // Apply simulation
-    // - Move
-    // - Check collision
-    // - Detonate bombs
+    // - Move (moveAndCollide)
+    // - Check collision (moveAndCollide)
+    // - Detonate bombs 
     // - Kill detonated players
     tick()
     {
-        // Move
+        // Move players
         for(const player of this.battlefield.players)
         {
+            player.tick();
+
             if(player.name == 'main player')
             {
                 this.battlefield.moveAndCollide(player, this.direction);
                 this.direction = Direction.Stay;
             }
-
-            player.tick();
         }
+
+        // Remove previous explosion smoke (TODO: Not needed some day)
+        for(const explosion of this.battlefield.explosions)
+        {
+            explosion.tick()
+
+            if(explosion.decayed)
+            {
+                this.battlefield.removeExplosion(explosion);
+            }
+        }
+
+        // Detonate bombs
+        for(const bomb of this.battlefield.bombs)
+        {
+            bomb.tick();
+
+            if(bomb.detonated)
+            {
+                this.battlefield.removeBomb(bomb)
+            }
+        }
+
+        // Kill players in explosion radius
+
+
 
         // this.explosions.forEach(v => v.tick()) // All explosions count down
         // this.bombs.forEach(v => v.tick()); // All bombs count down

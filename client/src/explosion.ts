@@ -1,21 +1,16 @@
 export default class Explosion
 {
-    private _x: number;
-    private _y: number;
     private image: Phaser.GameObjects.Image;
 
     private START_COUNT: number = 1;
 
     private countDown: number;
 
-    constructor(scene: Phaser.Scene, playerX: number, playerY: number, size: number)
+    constructor(scene: Phaser.Scene)
     {
-        this._x = playerX * size + size*0.5;
-        this._y = playerY * size + size*0.5;
-
         this.countDown = this.START_COUNT;
-
-        this.image = scene.add.image(this._x, this._y, 'explosion');
+        // TODO: This crap is not needed. Just spawn an animation in removeBomb()
+        this.image = scene.add.image(-100, -100, 'explosion');
     }
 
     tick()
@@ -31,5 +26,15 @@ export default class Explosion
     destroy()
     {
         this.image.destroy();
+    }
+
+    set x(value: number)
+    {
+        this.image.x = value;
+    }
+
+    set y(value: number)
+    {
+        this.image.y = value;
     }
 }

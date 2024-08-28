@@ -2,6 +2,7 @@ import Player from './player';
 import Position from './position';
 import Coordinates from './coordinates';
 import Bomb from './bomb';
+import Explosion from './explosion';
 import { Direction } from './direction';
 
 export default class Battlefield
@@ -15,7 +16,9 @@ export default class Battlefield
     private MARGIN_TOP: number = 10;
 
     private map: Position[][];
-    private _players: Map<Player, Coordinates> // TODO: rename 'lookup'
+    private _players: Map<Player, Coordinates>; // TODO: rename 'lookup'
+    private _bombs: Map<Bomb, Coordinates>;
+    private _explosions: Map<Explosion, Coordinates>;
 
     private scene: Phaser.Scene;
 
@@ -34,7 +37,11 @@ export default class Battlefield
 
         this.scene = scene;
         this.map = [];
+
+        this._bombs = new Map();
         this._players = new Map();
+        this._explosions = new Map();
+
         for(let i = 0; i < 12; i++) // TODO: Pass in GRID_COUNT
         { 
             const p = [];
@@ -55,7 +62,6 @@ export default class Battlefield
         // TODO: Place somewhere else if blocked
         this.map[x][y] = player;
 
-        // Position object correctly on the grid
         const [worldX, worldY] = this.gridToWorld(x, y);
         player.x = worldX;
         player.y = worldY;
@@ -65,26 +71,49 @@ export default class Battlefield
 
     spawnBomb(player: Player)
     {
-        // this.bombs.push(new Bomb(this.scene, player.x, player.y, this.tileSize))
-        const bomb = new Bomb(this.scene);
-
-        // 
         const { x, y } = this._players.get(player);
+
+        // TODO: Only spawn bomb if no bomb already exists on that space
+
+        const bomb = new Bomb(this.scene);
+        this._bombs.set(bomb, new Coordinates(x, y));
+
         const [worldX, worldY] = this.gridToWorld(x, y);
-
-        console.log(x, y);
-
         bomb.x = worldX;
         bomb.y = worldY;
     }
 
-    getPlayer()
+    spawnExplosion(x: number, y: number)
     {
-        // let coords = this._players.get(input);
-        // let { x, y } = coords.above()
+        const explosion = new Explosion(this.scene);
+        this._explosions.set(explosion, new Coordinates(x, y));
+
+        const [worldX, worldY] = this.gridToWorld(x, y);
+        explosion.x = worldX;
+        explosion.y = worldY;
+
     }
 
+    removeBomb(bomb: Bomb)
+    {
+        const { x, y } = this._bombs.get(bomb);
 
+        this._bombs.delete(bomb);
+        bomb.destroy();
+
+
+        for(let i = 0; i < this.GRID_COUNT; i++)
+        {
+            this.spawnExplosion(x, i);
+            this.spawnExplosion(i, y);
+        }
+    }
+
+    removeExplosion(explosion: Explosion)
+    {
+        explosion.destroy();
+        this._explosions.delete(explosion);
+    }
 
     moveAndCollide(player: Player, direction: Direction)
     {
@@ -127,6 +156,15 @@ export default class Battlefield
         return Array.from(this._players).map(([player]) => player);
     }
 
+    get bombs(): Bomb[]
+    {
+        return Array.from(this._bombs).map(([bomb]) => bomb);
+    }
+
+    get explosions(): Explosion[]
+    {
+        return Array.from(this._explosions).map(([explosion]) => explosion);
+    }
 
     // Expose this so other entities can scale themselves based on tile size.
     get tileSize()

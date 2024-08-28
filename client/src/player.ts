@@ -9,9 +9,10 @@ export default class Player implements Position
     private arrow: Phaser.GameObjects.Image;
 
     private nameTag: Phaser.GameObjects.Text;
+    private _name: string;
 
     private SCALE_FACTOR: number = 0.8;
-    private NAMETAG_OFFSET: number = -20;
+    private NAMETAG_OFFSET: number = -15;
 
     constructor(scene: Phaser.Scene, name: string, tileSize: number) 
     {
@@ -24,7 +25,10 @@ export default class Player implements Position
 
         this.arrow = scene.add.image(-100, -100, 'arrow');
 
-        this.nameTag = scene.add.text(10, 10, name, { font: '16px monospace', strokeThickness: 2, stroke: '#000'});
+        const fullName =  '❤️❤️❤️' + '/' + '💣💣' + '\n' +  name;
+        this._name = name;
+
+        this.nameTag = scene.add.text(10, 10, fullName, { font: '10px monospace', strokeThickness: 2, stroke: '#000', align: 'center'});
         this.nameTag.setOrigin(0.5, 1);
     }
     tick()
@@ -103,7 +107,7 @@ export default class Player implements Position
     // Used to identify the main player lol TODO
     get name()
     {
-        return this.nameTag.text;
+        return this._name;
     }
 }
 
