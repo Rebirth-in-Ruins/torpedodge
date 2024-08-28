@@ -24,11 +24,6 @@ export default class Simulation
     {
     }
 
-    plantBomb(player: Player)
-    {
-        // this.bombs.push(new Bomb(this.scene, player.x, player.y, this.tileSize))
-    }
-
     spawnCrossExplosion(x: number, y: number)
     {
         // const explosion = new Explosion(this.scene, x, y, this.tileSize);

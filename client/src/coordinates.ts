@@ -1,15 +1,18 @@
 import { Direction } from './direction';
 
-export default class Coordinates {
+export default class Coordinates
+{
     x: number;
     y: number;
 
-    constructor(x: number, y: number) {
+    constructor(x: number, y: number)
+    {
         this.x = x;
         this.y = y;
     }
 
-    move(direction: Direction): Coordinates {
+    move(direction: Direction): Coordinates
+    {
         switch(direction)
         {
             case Direction.Up:
@@ -25,19 +28,23 @@ export default class Coordinates {
         }
     }
 
-    above(): Coordinates {
+    above(): Coordinates
+    {
         return new Coordinates(this.x, this.y-1);
     }
 
-    below(): Coordinates {
+    below(): Coordinates
+    {
         return new Coordinates(this.x, this.y+1);
     }
 
-    left(): Coordinates {
+    left(): Coordinates
+    {
         return new Coordinates(this.x-1, this.y);
     }
 
-    right(): Coordinates {
+    right(): Coordinates
+    {
         return new Coordinates(this.x+1, this.y);
     }
 }

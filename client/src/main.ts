@@ -114,7 +114,7 @@ class Game extends Phaser.Scene
         }
         if(this.keys.SPACE.isDown) 
         {
-            this.simulation.plantBomb(this.player);
+            this.battlefield.spawnBomb(this.player);
         }
     }
 

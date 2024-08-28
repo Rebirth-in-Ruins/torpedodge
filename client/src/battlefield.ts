@@ -1,6 +1,7 @@
 import Player from './player';
 import Position from './position';
 import Coordinates from './coordinates';
+import Bomb from './bomb';
 import { Direction } from './direction';
 
 export default class Battlefield
@@ -62,11 +63,28 @@ export default class Battlefield
         return player;
     }
 
+    spawnBomb(player: Player)
+    {
+        // this.bombs.push(new Bomb(this.scene, player.x, player.y, this.tileSize))
+        const bomb = new Bomb(this.scene);
+
+        // 
+        const { x, y } = this._players.get(player);
+        const [worldX, worldY] = this.gridToWorld(x, y);
+
+        console.log(x, y);
+
+        bomb.x = worldX;
+        bomb.y = worldY;
+    }
+
     getPlayer()
     {
         // let coords = this._players.get(input);
         // let { x, y } = coords.above()
     }
+
+
 
     moveAndCollide(player: Player, direction: Direction)
     {

@@ -6,19 +6,13 @@ export default class Bomb
     private text: Phaser.GameObjects.Text;
     private image: Phaser.GameObjects.Image;
 
-    constructor(scene: Phaser.Scene, playerX: number, playerY: number, size: number)
+    constructor(scene: Phaser.Scene)
     {
-        let x = playerX * size + size*0.5;
-        let y = playerY * size + size*0.5;
-
-        // this.plantedX = playerX;
-        // this.plantedY = playerY;
-
-        this.image = scene.add.image(x, y, 'bomb');
+        this.image = scene.add.image(10, 10, 'bomb');
     
         this.countDown = this.START_COUNT;
 
-        this.text = scene.add.text(x, y, '' + this.countDown)
+        this.text = scene.add.text(10, 10, '' + this.countDown)
             .setFontSize(32)
             .setFontStyle('bold')
             .setFontFamily('Arial')
@@ -46,5 +40,17 @@ export default class Bomb
     {
         this.image.destroy();
         this.text.destroy();
+    }
+
+    set x(value: number)
+    {
+        this.image.x = value;
+        this.text.x = value;
+    }
+
+    set y(value: number)
+    {
+        this.image.y = value;
+        this.text.y = value;
     }
 }
