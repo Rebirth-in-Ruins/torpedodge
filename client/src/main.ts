@@ -30,8 +30,7 @@ class Game extends Phaser.Scene
         this.load.image('bomb', 'assets/bomb.png');
         this.load.image('explosion', 'assets/explosion.png');
 
-        // this.load.aseprite('bomba', 'Bomba.png', 'Bomba.json');
-        // this.anims.createFromAseprite('bomba');
+        this.load.aseprite('bomba', 'assets/bomba.png', 'assets/bomba.json');
     }
 
     create ()
@@ -75,7 +74,16 @@ class Game extends Phaser.Scene
                 name: 'xd',
                 score: 120,
             },
-        ])
+        ]);
+
+        this.anims.createFromAseprite('bomba');
+        const sprite = this.add.sprite(50, 50).play('explosion');
+        sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE,  () =>
+        {
+                sprite.destroy();
+                console.log("gone");
+        });
+
     }
 
     update(_: number, delta: number) 
