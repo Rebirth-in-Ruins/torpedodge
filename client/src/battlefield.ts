@@ -16,6 +16,7 @@ export default class Battlefield
     private MARGIN_TOP: number = 10;
 
     private map: Position[][];
+    private bombMap: Bomb[][];
     private _players: Map<Player, Coordinates>; // TODO: rename 'lookup'
     private _bombs: Map<Bomb, Coordinates>;
     private _explosions: Map<Explosion, Coordinates>;
@@ -37,21 +38,28 @@ export default class Battlefield
 
         this.scene = scene;
         this.map = [];
+        this.bombMap = [];
 
         this._bombs = new Map();
         this._players = new Map();
         this._explosions = new Map();
 
-        for(let i = 0; i < 12; i++) // TODO: Pass in GRID_COUNT
-        { 
-            const p = [];
-            for(let i = 0; i < 12; i++)
-            {
-                p.push(null);
+        const init = (arr) =>
+        {
+            for(let i = 0; i < 12; i++) // TODO: Pass in GRID_COUNT
+            { 
+                const p = [];
+                for(let i = 0; i < 12; i++)
+                {
+                    p.push(null);
 
+                }
+                arr.push(p);
             }
-            this.map.push(p)
         }
+
+        init(this.map);
+        init(this.bombMap);
     }
 
     spawnPlayer(name: string, x: number, y: number): Player
@@ -73,10 +81,17 @@ export default class Battlefield
     {
         const { x, y } = this._players.get(player);
 
-        // TODO: Only spawn bomb if no bomb already exists on that space
+        // Server: Only spawn bomb if no bomb already exists on that space
+        const exists = this.bombMap[x][y];
+        if(exists !== null || player.noAmmo)
+            return;
 
         const bomb = new Bomb(this.scene);
         this._bombs.set(bomb, new Coordinates(x, y));
+
+        this.bombMap[x][y] = bomb;
+
+        player.useBomb();
 
         const [worldX, worldY] = this.gridToWorld(x, y);
         bomb.x = worldX;
@@ -92,6 +107,8 @@ export default class Battlefield
         explosion.x = worldX;
         explosion.y = worldY;
 
+        // Player collision
+
         // const sprite = this.scene.add.sprite(worldX, worldY).play('explosion');
         // sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE,  () =>
         // {
@@ -104,9 +121,9 @@ export default class Battlefield
     {
         const { x, y } = this._bombs.get(bomb);
 
+        this.bombMap[x][y] = null;
         this._bombs.delete(bomb);
         bomb.destroy();
-
 
         for(let i = 0; i < this.GRID_COUNT; i++)
         {
@@ -171,7 +188,7 @@ export default class Battlefield
     {
         return Array.from(this._explosions).map(([explosion]) => explosion);
     }
-
+    
     // Expose this so other entities can scale themselves based on tile size.
     get tileSize()
     {

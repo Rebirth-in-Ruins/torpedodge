@@ -132,7 +132,7 @@ class Game extends Phaser.Scene
     // - Kill detonated players
     tick()
     {
-        // Move players
+        // Move players + do collision
         for(const player of this.battlefield.players)
         {
             player.tick();
@@ -155,7 +155,7 @@ class Game extends Phaser.Scene
             }
         }
 
-        // Detonate bombs
+        // Detonate bombs + hit any players in radius
         for(const bomb of this.battlefield.bombs)
         {
             bomb.tick();
@@ -191,7 +191,7 @@ const config = {
     type: Phaser.AUTO,
     backgroundColor: '#0000cc',
     width: 1000,
-    height: 800,
+    height: 700,
     scene: Game,
     parent: 'game',
     pixelArt: true,
