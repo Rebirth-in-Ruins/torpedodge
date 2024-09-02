@@ -92,6 +92,12 @@ export default class Battlefield
         explosion.x = worldX;
         explosion.y = worldY;
 
+        // const sprite = this.scene.add.sprite(worldX, worldY).play('explosion');
+        // sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE,  () =>
+        // {
+        //         sprite.destroy();
+        //         console.log("gone");
+        // });
     }
 
     removeBomb(bomb: Bomb)

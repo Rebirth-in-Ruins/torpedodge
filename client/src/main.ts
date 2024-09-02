@@ -77,12 +77,12 @@ class Game extends Phaser.Scene
         ]);
 
         this.anims.createFromAseprite('bomba');
-        const sprite = this.add.sprite(50, 50).play('explosion');
-        sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE,  () =>
-        {
-                sprite.destroy();
-                console.log("gone");
-        });
+        // const sprite = this.add.sprite(50, 50).play('explosion');
+        // sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE,  () =>
+        // {
+        //         sprite.destroy();
+        //         console.log("gone");
+        // });
 
     }
 
