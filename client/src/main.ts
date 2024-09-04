@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import Player from './player';
 import ProgressBar from './progressbar';
 import Battlefield from './battlefield';
-import Explosion from './explosion';
+import Airstrike from './airstrike';
 import { Direction } from './direction';
 import Leaderboard from './leaderboard';
 
@@ -30,6 +30,10 @@ class Game extends Phaser.Scene
         this.load.image('bomb', 'assets/bomb.png');
         this.load.image('explosion', 'assets/explosion.png');
 
+        this.load.image('small_shadow', 'assets/shadow_small.png');
+        this.load.image('medium_shadow', 'assets/shadow_medium.png');
+        this.load.image('big_shadow', 'assets/shadow_big.png');
+
         this.load.aseprite('bomba', 'assets/bomba.png', 'assets/bomba.json');
     }
 
@@ -43,13 +47,6 @@ class Game extends Phaser.Scene
         this.player = this.battlefield.spawnPlayer('main player', 2, 2);
 
         this.direction = Direction.Stay;
-        // this.battlefield.getPlayer(this.player);
-
-        // this.add.sprite(50, 50).play();
-
-        // this.map.remove(2, 2);
-
-        new Explosion(this);
 
         this.progressBar = new ProgressBar(this, width, height);
         this.leaderboard = new Leaderboard(this, width);
@@ -166,7 +163,17 @@ class Game extends Phaser.Scene
             }
         }
 
-        // Kill players in explosion radius
+        // Drop airstrikes further
+        for(const airstrike of this.battlefield.airstrikes)
+        {
+            airstrike.tick();
+            if(airstrike.detonated)
+            {
+                this.battlefield.removeAirstrike(airstrike);
+            }
+        }
+
+        this.battlefield.spawnAirstrikes();
 
 
 
