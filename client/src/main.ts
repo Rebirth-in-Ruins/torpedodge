@@ -5,6 +5,11 @@ import Battlefield from './battlefield';
 import { Direction } from './direction';
 import Leaderboard from './leaderboard';
 
+class GameState
+{
+
+}
+
 class Game extends Phaser.Scene
 {
     private keys: any;
@@ -73,28 +78,35 @@ class Game extends Phaser.Scene
 
         this.anims.createFromAseprite('bomba');
 
-        const conn = new WebSocket("ws://localhost:8080" + "/spectate");
-        conn.onclose = function (event)
+        // TODO: Environment variable for this
+        const conn = new WebSocket('ws://localhost:8080' + '/play?spectate=true');
+        conn.onclose = () =>
         {
-            console.log("closed");
-            console.log(event);
+            const graphics = this.add.graphics({ fillStyle: { color: 0x000000, alpha: 0.3 } });
+            graphics.fillRect(0, 0, width, height)
+
+            this.add.text(width/2, height - 32, 'Connection lost to server. Please reload')
+                .setFontSize(32)
+                .setFontFamily('Arial')
+                .setStroke('black', 3)
+                .setOrigin(0.5, 0.5);
         };
-        conn.onmessage = function (evt) {
-            console.log(evt.data);
-        };
-        conn.onerror = function (evt) {
+        conn.onerror = function (evt)
+        {
             console.log(evt);
         }
-
-        setInterval(() =>
-            {
-                conn.send("Hiii");
-            }, 3000)
+        conn.onmessage = (evt) =>
+        {
+            const obj = JSON.parse(evt.data);
+            this.render(obj);
+        };
     }
 
-    render()
+    render(gamestate: GameState)
     {
+        console.log(gamestate);
 
+        // TODO: Sync turns
     }
 
     update(_: number, delta: number) 
@@ -109,31 +121,31 @@ class Game extends Phaser.Scene
             this.tick();
         }
 
-        // Inputs
-        if(this.keys.W.isDown) 
-        {
-            this.player.lookUp();
-            this.direction = Direction.Up;
-        }
-        if(this.keys.A.isDown) 
-        {
-            this.player.lookLeft();
-            this.direction = Direction.Left;
-        }
-        if(this.keys.S.isDown)
-        {
-            this.player.lookDown();
-            this.direction = Direction.Down;
-        }
-        if(this.keys.D.isDown) 
-        {
-            this.player.lookRight();
-            this.direction = Direction.Right;
-        }
-        if(this.keys.SPACE.isDown) 
-        {
-            this.battlefield.spawnBomb(this.player);
-        }
+        // Manual Inputs
+        // if(this.keys.W.isDown) 
+        // {
+        //     this.player.lookUp();
+        //     this.direction = Direction.Up;
+        // }
+        // if(this.keys.A.isDown) 
+        // {
+        //     this.player.lookLeft();
+        //     this.direction = Direction.Left;
+        // }
+        // if(this.keys.S.isDown)
+        // {
+        //     this.player.lookDown();
+        //     this.direction = Direction.Down;
+        // }
+        // if(this.keys.D.isDown) 
+        // {
+        //     this.player.lookRight();
+        //     this.direction = Direction.Right;
+        // }
+        // if(this.keys.SPACE.isDown) 
+        // {
+        //     this.battlefield.spawnBomb(this.player);
+        // }
     }
 
     // Apply simulation

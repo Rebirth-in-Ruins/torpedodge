@@ -12,6 +12,8 @@ import (
 // Is a middleman between the websocket connection and the hub.
 // TODO: Client to player?
 type Client struct {
+	id int
+
 	server *Server
 
 	// The websocket connection.
@@ -25,9 +27,9 @@ type Client struct {
 }
 
 
-// player's websocket connection -> client.readPump -> hub
+// player's websocket connection -> client.readMessages -> hub
 // TODO: rename read
-func (c *Client) readPump() {
+func (c *Client) readMessages() {
 	defer func() {
 		c.conn.Close()
 	}()
@@ -36,7 +38,13 @@ func (c *Client) readPump() {
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 
+
 	for {
+		// Don't listen to spectators
+		if c.spectator {
+			continue
+		}
+
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
@@ -47,8 +55,8 @@ func (c *Client) readPump() {
 
 		fmt.Println(string(message))
 
-		// TODO: Sanitize?
-		// message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+		// Try parsing understanding message
+
 
 		// TODO: Save for game server
 		// c.server.broadcast <- message
@@ -56,8 +64,8 @@ func (c *Client) readPump() {
 }
 
 
-// hub -> client.writePump -> player's websocket connection
-func (c *Client) writePump() {
+// server -> client.writeMessages -> player's websocket connection
+func (c *Client) writeMessages() {
 	// Regularly do ping/pongs as heartbeat
 	ticker := time.NewTicker(pingPeriod)
 
@@ -73,8 +81,7 @@ func (c *Client) writePump() {
 
 			if !ok {
 				// The hub closed the channel because someone unregistered
-				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
-				return
+				panic("This happened")
 			}
 
 			w, err := c.conn.NextWriter(websocket.TextMessage)

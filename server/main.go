@@ -17,11 +17,11 @@ const (
 func main() {
 	server := newServer(Settings{
 		turnDuration: 2 * time.Second,
+		gridSize: 12,
 	})
-	go server.run()
+	go server.runGame()
 
-	http.HandleFunc("/spectate", server.spectateHandler)
-	http.HandleFunc("/join", server.joinHandler)
+	http.HandleFunc("/play", server.play)
 
 	slog.Info("Started server")
 
