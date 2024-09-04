@@ -120,14 +120,7 @@ export default class Battlefield
             // TODO: Losing Health animation
         }
 
-        this.scene.cameras.main.shake(100);
-
-        // const sprite = this.scene.add.sprite(worldX, worldY).play('explosion');
-        // sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE,  () =>
-        // {
-        //         sprite.destroy();
-        //         console.log("gone");
-        // });
+        this.scene.cameras.main.shake(200, 0.01);
     }
 
     spawnAirstrikes()

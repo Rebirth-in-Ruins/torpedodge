@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import Player from './player';
 import ProgressBar from './progressbar';
 import Battlefield from './battlefield';
-import Airstrike from './airstrike';
 import { Direction } from './direction';
 import Leaderboard from './leaderboard';
 
@@ -19,7 +18,6 @@ class Game extends Phaser.Scene
     private battlefield: Battlefield;
 
     private leaderboard: Leaderboard;
-    // private explosions: Array<Explosion>
 
     private direction: Direction;
 
@@ -74,12 +72,28 @@ class Game extends Phaser.Scene
         ]);
 
         this.anims.createFromAseprite('bomba');
-        // const sprite = this.add.sprite(50, 50).play('explosion');
-        // sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE,  () =>
-        // {
-        //         sprite.destroy();
-        //         console.log("gone");
-        // });
+
+        const conn = new WebSocket("ws://localhost:8080" + "/spectate");
+        conn.onclose = function (event)
+        {
+            console.log("closed");
+            console.log(event);
+        };
+        conn.onmessage = function (evt) {
+            console.log(evt.data);
+        };
+        conn.onerror = function (evt) {
+            console.log(evt);
+        }
+
+        setInterval(() =>
+            {
+                conn.send("Hiii");
+            }, 3000)
+    }
+
+    render()
+    {
 
     }
 
@@ -174,23 +188,6 @@ class Game extends Phaser.Scene
         }
 
         this.battlefield.spawnAirstrikes();
-
-
-
-        // this.explosions.forEach(v => v.tick()) // All explosions count down
-        // this.bombs.forEach(v => v.tick()); // All bombs count down
-
-        // Handle bombs
-        // const detonated = this.bombs.filter(v => v.denonated);
-        
-        // detonated.forEach(v => this.spawnCrossExplosion(v.x, v.y));     // Spawn explosions on detonated bombs
-        // detonated.forEach(v => v.destroy());                            // Remove detonated bombs
-        // this.bombs = this.bombs.filter(v => !v.denonated)               // Keep the undetonated bombs
-
-        // Handle explosions
-        // const decayed = this.explosions.filter(v => v.decayed);
-        // decayed.forEach(v => v.destroy());
-        // this.explosions = this.explosions.filter(v => !v.decayed);
     }
 }
 

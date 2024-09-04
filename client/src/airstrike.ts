@@ -42,12 +42,8 @@ export default class Airstrike
                 break;
         }
 
-
-        console.log(this.countDown);
-
         if(this.countDown > 0)
         {
-            console.log('change');
             this.text.text = '' + this.countDown;
         }
     }
