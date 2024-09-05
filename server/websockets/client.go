@@ -102,6 +102,9 @@ func (c *Client) writeMessages() {
 			if err != nil && strings.Contains(err.Error(), "use of closed network connection"){
 				slog.Error("could not write message", slog.String("error", err.Error()))
 				return
+			} else if err != nil && strings.Contains(err.Error(), "failed to flush") {
+				slog.Error("could not write message", slog.String("error", err.Error()))
+				return
 			} else if err != nil {
 				panic(err)
 			}

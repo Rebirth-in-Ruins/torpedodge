@@ -31,15 +31,15 @@ func (s *Server) play(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := &Client{
-		id: s.counter,
+		id: int(s.counter.Load()),
 		server: s, 
 		conn: conn, 
 		send: make(chan []byte, 1024), 
 		spectator: spectator,
 	}
-	s.clients[client.id] = client
+	s.AddClient(client)
 
-	s.counter++
+	s.counter.Add(1)
 
 	go client.writeMessages()
 	go client.readMessages()
