@@ -2,6 +2,8 @@ package game
 
 
 type Player struct {
+	ID int `json:"id"`
+
 	// name tag
 	Name string `json:"name"`
 

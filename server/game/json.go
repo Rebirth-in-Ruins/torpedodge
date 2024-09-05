@@ -4,6 +4,7 @@ import "encoding/json"
 
 type GameStateResponse struct {
 	Players []Player `json:"players"`
+	Settings Settings `json:"settings"`
 }
 
 func (g *State) JSON() []byte {
@@ -21,6 +22,7 @@ func (g *State) JSON() []byte {
 
 	response := GameStateResponse{
 		Players: players,
+		Settings: g.Settings,
 	}
 
 	b, err := json.Marshal(response)

@@ -5,26 +5,73 @@ import Battlefield from './battlefield';
 import { Direction } from './direction';
 import Leaderboard from './leaderboard';
 
+// TODO: Better name, better location
+export class ServerPlayer
+{
+    id: number
+
+	name: string
+
+	// coordinates
+	x: number
+	y: number
+
+	// amount of lives
+	health: number
+
+	// allowed  
+	bombCount: number
+
+	// amount of turns until bomb is available
+	bombRespawn: number
+}
+
+class ServerSettings
+{
+	// time until inputs are evaluated and game state is updated
+	turnDuration: number
+
+	// size of the map
+	gridSize: number
+
+	// how many bombs can be stored at once
+	inventorySize: number
+
+	// how many turns it takes before a player can get another bomb
+	bombRespawnTime: number
+
+	// how many lives the player has 
+	startHealth: number
+}
+
 class GameState
 {
-
+    players: Array<ServerPlayer>
+    settings: ServerSettings
 }
 
 class Game extends Phaser.Scene
 {
-    private keys: any;
+    // private keys: any;
 
-    private TURN_DURATION: number = 1500;
+    // private TURN_DURATION: number = 1500;
 
     private currentTurnDuration: number = 0;
 
-    private player: Player;
+    // private player: Player;
     private progressBar: ProgressBar;
     private battlefield: Battlefield;
 
     private leaderboard: Leaderboard;
 
-    private direction: Direction;
+    // private direction: Direction;
+
+    // private _tileSize: number;
+
+    private statusText: Phaser.GameObjects.Text;
+
+    private width: number;
+    private height: number;
 
     preload ()
     {
@@ -42,14 +89,19 @@ class Game extends Phaser.Scene
 
     create ()
     {
-        this.keys = this.input.keyboard.addKeys('W,A,S,D,SPACE');
+        // this.keys = this.input.keyboard.addKeys('W,A,S,D,SPACE');
 
         const { width, height } = this.sys.game.canvas;
+        this.width = width;
+        this.height = height;
 
-        this.battlefield = new Battlefield(this, width, height);
-        this.player = this.battlefield.spawnPlayer('main player', 2, 2);
+        // this.direction = Direction.Stay;
 
-        this.direction = Direction.Stay;
+        this.statusText = this.add.text(width/2, height - 32, 'Loading Game...')
+            .setFontSize(32)
+            .setFontFamily('Arial')
+            .setStroke('black', 3)
+            .setOrigin(0.5, 0.5);
 
         this.progressBar = new ProgressBar(this, width, height);
         this.leaderboard = new Leaderboard(this, width);
@@ -85,11 +137,7 @@ class Game extends Phaser.Scene
             const graphics = this.add.graphics({ fillStyle: { color: 0x000000, alpha: 0.3 } });
             graphics.fillRect(0, 0, width, height)
 
-            this.add.text(width/2, height - 32, 'Connection lost to server. Please reload')
-                .setFontSize(32)
-                .setFontFamily('Arial')
-                .setStroke('black', 3)
-                .setOrigin(0.5, 0.5);
+            this.statusText.text = 'Connection lost to server. Please reload';
         };
         conn.onerror = function (evt)
         {
@@ -102,26 +150,50 @@ class Game extends Phaser.Scene
         };
     }
 
-    private currentGameState: GameState;
+    // private currentGameState: GameState;
+    private settings: ServerSettings;
 
     render(gamestate: GameState)
     {
-        console.log(gamestate);
+        // Render map when we received the settings (if the settings change the client is out of sync but cba).
+        if(this.settings === undefined)
+        {
+            this.settings = gamestate.settings;
+            this.settings.turnDuration /= 1_000_000; // convert from nanoseconds
+            this.battlefield = new Battlefield(this, this.width, this.height, this.settings.gridSize);
+            this.statusText.text = '';
+        }
 
-        // TODO: Sync turns
+        // Render players
+        for(const obj of gamestate.players)
+        {
+            this.battlefield.renderPlayer(obj)
+        }
+
+        // Remove players that left
+        // TODO: Vielleicht einfacher alles zu destroyen?
+        const ids = gamestate.players.map(p => p.id);
+        for(const id of this.battlefield.playerIds)
+        {
+            if(!ids.includes(id))
+            {
+                this.battlefield.removePlayer(id);
+            }
+        }
+
+
+        this.currentTurnDuration = 0;
+        // this.currentGameState = gamestate;
     }
 
     update(_: number, delta: number) 
     {
+        // Only render the turn's progress bar when server told us how long a turn takes.
+        if(this.settings === undefined)
+            return
+
         this.currentTurnDuration += delta;
-        this.progressBar.setProgress(this.currentTurnDuration / this.TURN_DURATION);
-        
-        // Turn is over
-        if(this.currentTurnDuration > this.TURN_DURATION)
-        {
-            this.currentTurnDuration = 0;
-            this.tick();
-        }
+        this.progressBar.setProgress(this.currentTurnDuration / this.settings.turnDuration);
 
         // Manual Inputs
         // if(this.keys.W.isDown) 
@@ -158,50 +230,50 @@ class Game extends Phaser.Scene
     tick()
     {
         // Move players + do collision
-        for(const player of this.battlefield.players)
-        {
-            player.tick();
-
-            if(player.name == 'main player')
-            {
-                this.battlefield.moveAndCollide(player, this.direction);
-                this.direction = Direction.Stay;
-            }
-        }
+        // for(const player of this.battlefield.players)
+        // {
+        //     player.tick();
+        //
+        //     if(player.name == 'main player')
+        //     {
+        //         this.battlefield.moveAndCollide(player, this.direction);
+        //         this.direction = Direction.Stay;
+        //     }
+        // }
 
         // Remove previous explosion smoke (TODO: Not needed some day)
-        for(const explosion of this.battlefield.explosions)
-        {
-            explosion.tick()
-
-            if(explosion.decayed)
-            {
-                this.battlefield.removeExplosion(explosion);
-            }
-        }
-
-        // Detonate bombs + hit any players in radius
-        for(const bomb of this.battlefield.bombs)
-        {
-            bomb.tick();
-
-            if(bomb.detonated)
-            {
-                this.battlefield.removeBomb(bomb)
-            }
-        }
-
-        // Drop airstrikes further
-        for(const airstrike of this.battlefield.airstrikes)
-        {
-            airstrike.tick();
-            if(airstrike.detonated)
-            {
-                this.battlefield.removeAirstrike(airstrike);
-            }
-        }
-
-        this.battlefield.spawnAirstrikes();
+        // for(const explosion of this.battlefield.explosions)
+        // {
+        //     explosion.tick()
+        //
+        //     if(explosion.decayed)
+        //     {
+        //         this.battlefield.removeExplosion(explosion);
+        //     }
+        // }
+        //
+        // // Detonate bombs + hit any players in radius
+        // for(const bomb of this.battlefield.bombs)
+        // {
+        //     bomb.tick();
+        //
+        //     if(bomb.detonated)
+        //     {
+        //         this.battlefield.removeBomb(bomb)
+        //     }
+        // }
+        //
+        // // Drop airstrikes further
+        // for(const airstrike of this.battlefield.airstrikes)
+        // {
+        //     airstrike.tick();
+        //     if(airstrike.detonated)
+        //     {
+        //         this.battlefield.removeAirstrike(airstrike);
+        //     }
+        // }
+        //
+        // this.battlefield.spawnAirstrikes();
     }
 }
 

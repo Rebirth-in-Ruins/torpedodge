@@ -8,7 +8,7 @@ import (
 
 	"github.com/rebirth-in-ruins/torpedodge/server/datastr"
 	"github.com/rebirth-in-ruins/torpedodge/server/protocol"
-	"golang.org/x/exp/rand"
+	"math/rand/v2"
 )
 
 type State struct {
@@ -20,6 +20,7 @@ type State struct {
 }
 
 func New(settings Settings) *State {
+	// TODO: We might not need sync.Maps at all...
 	return &State{
 		players: sync.Map{},
 		inputs: sync.Map{},
@@ -49,18 +50,14 @@ func (g *State) RunSimulation() {
 
 	// Prepare next round
 	g.inputs.Clear()
-
-	// p := math.NewGrid[entities.Player](g.settings.GridSize)
-	// p[3][3] = &entities.Player{X: 3, Y: 3}
-	// math.PrintGrid(p)
 }
 
 func (g *State) playerJoins(id int, name string) {
 	// Find free space
 	var x, y int
 	for {
-		x = rand.Intn(g.Settings.GridSize)
-		y = rand.Intn(g.Settings.GridSize)
+		x = rand.IntN(g.Settings.GridSize)
+		y = rand.IntN(g.Settings.GridSize)
 
 		// Retry TODO: Inefficient
 		if g.playerPositions[x][y] != nil {
@@ -70,6 +67,7 @@ func (g *State) playerJoins(id int, name string) {
 		break
 	}
 	player := &Player{
+		ID: id,
 		Name:        name,
 		X:           x,
 		Y:           y,
@@ -82,6 +80,18 @@ func (g *State) playerJoins(id int, name string) {
 	g.players.Store(id, player)
 
 	slog.Info("player joined", slog.String("name", player.Name))
+}
+
+// A websocket client will report that a player has left because their connection is gone.
+func (g *State) PlayerLeaves(id int) {
+	value, ok := g.players.Load(id)
+	if !ok {
+		panic("could not get player") // TODO:
+	}
+	g.players.Delete(id)
+
+	player := value.(*Player)
+	g.playerPositions[player.X][player.Y] = nil
 }
 
 type Input struct {

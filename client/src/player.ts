@@ -126,6 +126,13 @@ export default class Player
         this.nameTag.text = this.fullName();
     }
 
+    destroy()
+    {
+        this.nameTag.destroy();
+        this.ship.destroy();
+        this.arrow.destroy();
+    }
+
     private fullName(): string
     {
         return '❤️'.repeat(this.health) + '/' + '💣'.repeat(this.bombs) + '\n' +  this._name;

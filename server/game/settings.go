@@ -4,18 +4,18 @@ import "time"
 
 type Settings struct {
 	// time until inputs are evaluated and game state is updated
-	TurnDuration time.Duration
+	TurnDuration time.Duration `json:"turnDuration"`
 
 	// size of the map
-	GridSize int
+	GridSize int `json:"gridSize"`
 
 	// how many bombs can be stored at once
-	InventorySize int
+	InventorySize int `json:"inventorySize"`
 
 	// how many turns it takes before a player can get another bomb
-	BombRespawnTime int
+	BombRespawnTime int `json:"bombRespawnTime"`
 
 	// how many lives the player has 
-	StartHealth int
+	StartHealth int `json:"startHealth"`
 }
 

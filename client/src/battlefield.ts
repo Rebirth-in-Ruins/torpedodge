@@ -3,12 +3,13 @@ import Coordinates from './coordinates';
 import Bomb from './bomb';
 import Explosion from './explosion';
 import Airstrike from './airstrike';
+import { ServerPlayer } from './main';
 import { Direction } from './direction';
 
 export default class Battlefield
 {
     private GRID_PERCENTAGE = 0.85;
-    private GRID_COUNT: number = 12;
+    private gridCount: number;
 
     private _tileSize: number;
 
@@ -19,17 +20,19 @@ export default class Battlefield
     private bombMap: Bomb[][];
     private airstrikeMap: Airstrike[][];
 
-    private _players: Map<Player, Coordinates>; 
+    // private _players: Map<Player, Coordinates>; 
     private _bombs: Map<Bomb, Coordinates>;
     private _explosions: Map<Explosion, Coordinates>;
     private _airstrikes: Map<Airstrike, Coordinates>;
 
     private scene: Phaser.Scene;
 
-    constructor(scene: Phaser.Scene, gameWidth: number, gameHeight: number)
+    constructor(scene: Phaser.Scene, gameWidth: number, gameHeight: number, gridCount: number)
     {
+        this.gridCount = gridCount;
+
         const gridSize = gameHeight*this.GRID_PERCENTAGE;
-        this._tileSize = (gameHeight*this.GRID_PERCENTAGE)/this.GRID_COUNT;
+        this._tileSize = (gameHeight*this.GRID_PERCENTAGE)/this.gridCount;
 
         // Draw black background offset by a 2px background (serves as the grid border).
         const r1 = scene.add.rectangle(this.MARGIN_LEFT-2, this.MARGIN_TOP-2, gridSize+2, gridSize+2, 0x000000, 0.5);
@@ -45,7 +48,7 @@ export default class Battlefield
         this.airstrikeMap = [];
 
         this._bombs = new Map();
-        this._players = new Map();
+        // this._players = new Map();
         this._explosions = new Map();
         this._airstrikes = new Map();
 
@@ -68,19 +71,29 @@ export default class Battlefield
         init(this.airstrikeMap);
     }
 
-    spawnPlayer(name: string, x: number, y: number): Player
+    private _players: Map<number, Player> = new Map(); 
+
+    renderPlayer(obj: ServerPlayer)
     {
-        const player = new Player(this.scene, name, this.tileSize);
-        this._players.set(player, new Coordinates(x, y));
+        let player = this._players.get(obj.id);
 
-        // TODO: Place somewhere else if blocked
-        this.map[x][y] = player;
+        // New player joined and needs to be added
+        if(player == undefined)
+        {
+            player = new Player(this.scene, obj.name, this._tileSize); // TODO: Settings
+            this._players.set(obj.id, player);
+        }
 
-        const [worldX, worldY] = this.gridToWorld(x, y);
+        const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);
         player.x = worldX;
         player.y = worldY;
+    }
 
-        return player;
+    removePlayer(id: number)
+    {
+        const player = this._players.get(id);
+        player.destroy();
+        this._players.delete(id);
     }
 
     spawnBomb(player: Player)
@@ -125,8 +138,8 @@ export default class Battlefield
 
     spawnAirstrikes()
     {
-        let x = this.randomNumber(0, this.GRID_COUNT-1);
-        let y = this.randomNumber(0, this.GRID_COUNT-1);
+        let x = this.randomNumber(0, this.gridCount-1);
+        let y = this.randomNumber(0, this.gridCount-1);
 
         // Server: Only spawn airstrike if no other entity already exists on that space
         const bomb = this.bombMap[x][y];
@@ -158,7 +171,7 @@ export default class Battlefield
         this._airstrikes.delete(airstrike);
         airstrike.destroy();
 
-        for(let i = 0; i < this.GRID_COUNT; i++)
+        for(let i = 0; i < this.gridCount; i++)
         {
             this.spawnExplosion(x, i);
             this.spawnExplosion(i, y);
@@ -174,7 +187,7 @@ export default class Battlefield
         this._bombs.delete(bomb);
         bomb.destroy();
 
-        for(let i = 0; i < this.GRID_COUNT; i++)
+        for(let i = 0; i < this.gridCount; i++)
         {
             this.spawnExplosion(x, i);
             this.spawnExplosion(i, y);
@@ -187,30 +200,30 @@ export default class Battlefield
         this._explosions.delete(explosion);
     }
 
-    moveAndCollide(player: Player, direction: Direction)
-    {
-        const old = this._players.get(player);
-        const neww = old.move(direction);
-
-        // Collision
-        if(this.outOfBounds(neww) || this.map[neww.x][neww.y] != null)
-            return
-
-        // Update data structures
-        this.map[old.x][old.y] = null;
-        this.map[neww.x][neww.y] = player;
-        this._players.set(player, neww)
-
-        // Update image position
-        const [worldX, worldY] = this.gridToWorld(neww.x, neww.y);
-        player.x = worldX;
-        player.y = worldY;
-    }
+    // moveAndCollide(player: Player, direction: Direction)
+    // {
+    //     const old = this._players.get(player);
+    //     const neww = old.move(direction);
+    //
+    //     // Collision
+    //     if(this.outOfBounds(neww) || this.map[neww.x][neww.y] != null)
+    //         return
+    //
+    //     // Update data structures
+    //     this.map[old.x][old.y] = null;
+    //     this.map[neww.x][neww.y] = player;
+    //     this._players.set(player, neww)
+    //
+    //     // Update image position
+    //     const [worldX, worldY] = this.gridToWorld(neww.x, neww.y);
+    //     player.x = worldX;
+    //     player.y = worldY;
+    // }
 
     outOfBounds(coords: Coordinates): boolean
     {
-        const horizontal = coords.x < 0 || this.GRID_COUNT <= coords.x;
-        const vertical = coords.y < 0 || this.GRID_COUNT <= coords.y;
+        const horizontal = coords.x < 0 || this.gridCount <= coords.x;
+        const vertical = coords.y < 0 || this.gridCount <= coords.y;
 
         return horizontal || vertical;
     }
@@ -223,9 +236,9 @@ export default class Battlefield
         return [worldX, worldY];
     }
 
-    get players(): Player[]
+    get playerIds(): number[]
     {
-        return Array.from(this._players).map(([player]) => player);
+        return Array.from(this._players).map(([id]) => id);
     }
 
     get bombs(): Bomb[]

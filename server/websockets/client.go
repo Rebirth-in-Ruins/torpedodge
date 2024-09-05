@@ -78,7 +78,18 @@ func (c *Client) writeMessages() {
 		ticker.Stop()
 		c.conn.Close(websocket.StatusNormalClosure, "")
 		slog.Info("disonnecting write pipe of client", slog.String("name", c.name))
+
+		// TODO: Delete on Read or write pipeline?
+		if !c.spectator {
+			c.server.state.PlayerLeaves(c.id)
+		}
 	}()
+
+	// Send spectators the game state instantly so they can render it
+	if c.spectator {
+		c.send <- c.server.state.JSON()
+	}
+
 	for {
 		select {
 		case message, ok := <-c.send:
