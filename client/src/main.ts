@@ -102,6 +102,8 @@ class Game extends Phaser.Scene
         };
     }
 
+    private currentGameState: GameState;
+
     render(gamestate: GameState)
     {
         console.log(gamestate);

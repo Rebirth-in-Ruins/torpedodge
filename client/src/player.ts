@@ -1,7 +1,6 @@
-import Position from './position';
 import { Direction } from './direction';
 
-export default class Player implements Position
+export default class Player
 {
     private tileSize: number;
 

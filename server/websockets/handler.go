@@ -1,23 +1,21 @@
-package main
+package websockets
 
 import (
 	"log/slog"
 	"net/http"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 )
-
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true // TODO: only localhost and torpedodge.resamvi.io
-	},
-}
 
 // HTTP endpoint to start watching the game.
 func (s *Server) play(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+	// TODO: only localhost and torpedodge.resamvi.io
+	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+		InsecureSkipVerify:   true,
+	})
 	if err != nil {
 		slog.Info("failed to upgrade", slog.String("error", err.Error()))
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -32,8 +30,16 @@ func (s *Server) play(w http.ResponseWriter, r *http.Request) {
 		slog.Info("player connected")
 	}
 
-	client := &Client{server: s, conn: conn, send: make(chan []byte, 1024), spectator: spectator}
-	s.clients[client] = true
+	client := &Client{
+		id: s.counter,
+		server: s, 
+		conn: conn, 
+		send: make(chan []byte, 1024), 
+		spectator: spectator,
+	}
+	s.clients[client.id] = client
+
+	s.counter++
 
 	go client.writeMessages()
 	go client.readMessages()

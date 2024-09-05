@@ -4,28 +4,26 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
-)
 
-const (
-	// Time allowed to read the next pong message from the peer.
-	pongWait = 60 * time.Second
-
-	// Send pings to peer with this period. Must be less than pongWait.
-	pingPeriod = (pongWait * 9) / 10
+	"github.com/rebirth-in-ruins/torpedodge/server/game"
+	"github.com/rebirth-in-ruins/torpedodge/server/websockets"
 )
 
 func main() {
-	server := newServer(Settings{
-		turnDuration: 2 * time.Second,
-		gridSize: 12,
+	gameState := game.New(game.Settings{
+		TurnDuration: 2 * time.Second,
+		GridSize: 12,
+		InventorySize: 2,
+		BombRespawnTime: 3,
+		StartHealth: 3,
 	})
-	go server.runGame()
 
-	http.HandleFunc("/play", server.play)
+	server, mux := websockets.New(gameState)
+	go server.StartGame()
 
 	slog.Info("Started server")
 
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
 		slog.Error("ListenAndServe failed", slog.String("error", err.Error()))
 	}
