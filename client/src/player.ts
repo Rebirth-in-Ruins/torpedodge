@@ -80,22 +80,22 @@ export default class Player
     {
         switch(direction)
             {
-            case "UP":
+            case 'UP':
                 this.ship.angle = 180; 
                 this.arrow.angle = -90;
                 this.placeArrow(Direction.Up);
                 break;
-            case "DOWN":
+            case 'DOWN':
                 this.ship.angle = 0;
                 this.arrow.angle = 90;
                 this.placeArrow(Direction.Down);
                 break;
-            case "LEFT":
+            case 'LEFT':
                 this.ship.angle = 90;
                 this.arrow.angle = 180;
                 this.placeArrow(Direction.Left);
                 break;
-            case "RIGHT":
+            case 'RIGHT':
                 this.ship.angle = -90;
                 this.arrow.angle = 0;
                 this.placeArrow(Direction.Right);

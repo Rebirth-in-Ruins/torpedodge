@@ -13,7 +13,6 @@ import (
 
 // Client is created for each websocket connection.
 // Is a middleman between the websocket connection and the hub.
-// TODO: Client to player?
 type Client struct {
 	id int
 	name string // for human-readable logging

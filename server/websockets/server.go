@@ -1,7 +1,7 @@
 package websockets
 
 import (
-	"fmt"
+	"log/slog"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -59,11 +59,9 @@ func (s *Server) StartGame() {
 				default:
 					// TODO: I can't explain why this occurs but it's necessary
 					// TODO: do we delete clients from the map?
-					fmt.Printf("%+v", client)
-					fmt.Printf("%+v", s.clients)
-					panic("broadcast to closed channel occurred")
-					// close(client.send)
-					// delete(s.clients, client.id)
+					slog.Info("broadcast to closed channel occurred")
+					close(client.send)
+					delete(s.clients, client.id)
 				}
 			}
 			s.Unlock()

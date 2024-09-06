@@ -87,8 +87,8 @@ func (g *State) RunSimulation() {
 	clear(g.inputs)
 }
 
+// spawnPlayer places the player entity for a client at a random tile
 func (g *State) spawnPlayer(id int, name string) {
-	// Find free space
 	x, y := g.getFreeRandomTile()
 
 	player := &Player{
@@ -108,6 +108,7 @@ func (g *State) spawnPlayer(id int, name string) {
 	slog.Info("player joined", slog.String("name", player.Name))
 }
 
+// spawnAirstrike starts a new count down to explosion at a random tile
 func (g *State) spawnAirstrike() {
 	// Find free space
 	x, y := g.getFreeRandomTile()
@@ -126,6 +127,8 @@ func (g *State) spawnAirstrike() {
 	slog.Debug("airstrike spawned", slog.Int("x", airstrike.X), slog.Int("y", airstrike.Y))
 }
 
+// spawnExplosion adds the entity at the location.
+// Helps with detecting if players were hit
 func (g *State) spawnExplosion(x int, y int) {
 	explosion := &Explosion{
 		ID: g.counter,
@@ -154,6 +157,8 @@ func (g *State) RemovePlayer(id int) {
 	g.playerPositions[player.X][player.Y] = nil
 }
 
+// removeAirstrike removes the entity and replaces it 
+// with explosions at the location
 func (g *State) removeAirstrike(as *Airstrike) {
 	airstrike, ok := g.airstrikes[as.ID]
 	if !ok {
@@ -163,14 +168,14 @@ func (g *State) removeAirstrike(as *Airstrike) {
 
 	g.airstrikePositions[airstrike.X][airstrike.Y] = nil
 
-	// TODO: Spawn explosions
-
+	// Spawn explosions at the place where the airstrike detonated
 	for i := 0; i < g.Settings.GridSize; i++ {
 		g.spawnExplosion(airstrike.X, i);
 		g.spawnExplosion(i, airstrike.Y);
 	}
 }
 
+// movePlayer changes the position
 func (g *State) movePlayer(id int, direction Direction) {
 	player, ok := g.players[id]
 	if !ok {
@@ -205,6 +210,7 @@ func (g *State) movePlayer(id int, direction Direction) {
 	g.players[id] = player // TODO: Is this even necessary?
 }
 
+// isOutOfBounds keeps players from moving out of the map.
 func (g *State) isOutOfBounds(x int, y int) bool {
 	horizontal := x < 0 || g.Settings.GridSize <= x
 	vertical := y < 0 || g.Settings.GridSize <= y
@@ -212,6 +218,7 @@ func (g *State) isOutOfBounds(x int, y int) bool {
 	return horizontal || vertical;
 }
 
+// getFreeRandomTile helps in finding a spawn location for entites.
 func (g *State) getFreeRandomTile() (int, int) {
 	var x, y int
 	for {
@@ -242,6 +249,7 @@ func (g *State) StoreInput(id int, message protocol.Message) {
 	g.inputs[id] = Input{id: id, message: message, time: time.Now()}
 }
 
+// New starts a fresh game state.
 func New(settings Settings) *State {
 	return &State{
 		Mutex:              sync.Mutex{},

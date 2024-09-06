@@ -4,7 +4,7 @@ export default class Explosion
 
     constructor(scene: Phaser.Scene)
     {
-        //@ts-ignore
+        //@ts-expect-error the last argument is actually optional
         this.sprite = scene.add.sprite(-100, -100).play('explosion');
         this.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE,  () =>
         {
@@ -19,6 +19,6 @@ export default class Explosion
 
     set y(value: number)
     {
-        this.sprite.y = value;
+        this.sprite.y = value - 20;
     }
 }

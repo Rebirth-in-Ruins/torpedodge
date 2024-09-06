@@ -103,8 +103,11 @@ export default class Battlefield
         airstrike.y = worldY;
     }
 
-    renderExplosions(obj: ServerExplosion, sound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound)
+    renderExplosions(obj: ServerExplosion, sound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound, focusLost: boolean)
     {
+        if(focusLost)
+            return
+
         const explosion = new Explosion(this.scene);
 
         const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);

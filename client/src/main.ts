@@ -1,8 +1,6 @@
 import Phaser from 'phaser';
-// import Player from './player';
 import ProgressBar from './progressbar';
 import Battlefield from './battlefield';
-// import { Direction } from './direction';
 import Leaderboard from './leaderboard';
 
 // TODO: Better name, better location
@@ -87,8 +85,12 @@ class Game extends Phaser.Scene
     private width: number;
     private height: number;
 
-    private muted: boolean = true;
+    private musicMuted: boolean = true;
     private soundMuted: boolean = true;
+
+    // This prevents a bug where switching back to the game would draw a lot of explosions
+    // Switching away from the tab pauses the game but explosion animations still get queued => too much boom boom.
+    private focusLost: boolean = false;
 
     private music: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
     private explodeSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
@@ -191,8 +193,8 @@ class Game extends Phaser.Scene
         button.setInteractive({ useHandCursor: true });
         button.on('pointerdown', () =>
         {
-            this.muted = !this.muted;
-            if(this.muted)
+            this.musicMuted = !this.musicMuted;
+            if(this.musicMuted)
             {
                 button.setTexture('music_muted');
                 this.music.stop();
@@ -222,27 +224,16 @@ class Game extends Phaser.Scene
                 this.explodeSound.setMute(false);
             }
 
-        })
+        });
 
-        // const button = this.add.text(800, 500, 'Play Game', {
-        //     fontFamily: 'Arial',
-        //     fontSize: '32px',
-        //     color: '#ffffff',
-        //     align: 'center',
-        //     fixedWidth: 260,
-        //     backgroundColor: '#2d2d2d'
-        // }).setPadding(32).setOrigin(0.5);
-        //
-        // button.setInteractive({ useHandCursor: true });
-        // button.on('pointerdown', () => {
-        //
-        // });
-        // button.on('pointerover', () => {
-        //     button.setBackgroundColor('#8d8d8d');
-        // });
-        // button.on('pointerout', () => {
-        //     button.setBackgroundColor('#2d2d2d');
-        // });
+        this.game.events.on('blur', () =>
+        {
+            this.focusLost = true;
+        });
+        this.game.events.on('focus', () =>
+        {
+            this.focusLost = false;
+        });
     }
 
     // private currentGameState: GameState;
@@ -279,7 +270,7 @@ class Game extends Phaser.Scene
         // Render explosions
         for(const obj of gamestate.explosions)
         {
-            this.battlefield.renderExplosions(obj, this.explodeSound);
+            this.battlefield.renderExplosions(obj, this.explodeSound, this.focusLost);
         }
 
 
@@ -295,32 +286,6 @@ class Game extends Phaser.Scene
 
         this.currentTurnDuration += delta;
         this.progressBar.setProgress(this.currentTurnDuration / this.settings.turnDuration);
-
-        // Manual Inputs
-        // if(this.keys.W.isDown) 
-        // {
-        //     this.player.lookUp();
-        //     this.direction = Direction.Up;
-        // }
-        // if(this.keys.A.isDown) 
-        // {
-        //     this.player.lookLeft();
-        //     this.direction = Direction.Left;
-        // }
-        // if(this.keys.S.isDown)
-        // {
-        //     this.player.lookDown();
-        //     this.direction = Direction.Down;
-        // }
-        // if(this.keys.D.isDown) 
-        // {
-        //     this.player.lookRight();
-        //     this.direction = Direction.Right;
-        // }
-        // if(this.keys.SPACE.isDown) 
-        // {
-        //     this.battlefield.spawnBomb(this.player);
-        // }
     }
 
     // Apply simulation
