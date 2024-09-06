@@ -6,7 +6,7 @@ export default class Leaderboard
 
     constructor(scene: Phaser.Scene, gameWidth: number)
     {
-        this.text = scene.add.text(gameWidth * 0.72, 10, 'LEADERBOARD', { font: '16px monospace'});
+        this.text = scene.add.text(gameWidth * 0.72, 50, 'LEADERBOARD', { font: '16px monospace'});
     }
 
     render(list: Array<{name: string, score: number}>)

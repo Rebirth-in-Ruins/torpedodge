@@ -44,9 +44,6 @@ export default class Battlefield
         const g1 = scene.add.grid(this.MARGIN_LEFT, this.MARGIN_TOP, gridSize, gridSize, this._tileSize, this._tileSize, 0x0000cc, 1, 0x000000, 0.5);
         g1.setOrigin(0,0);
 
-        this.explodeSound = scene.sound.add('explosion1');
-        this.explodeSound.setVolume(0.3);
-
         this.scene = scene;
         this.map = [];
         this.bombMap = [];
@@ -106,7 +103,7 @@ export default class Battlefield
         airstrike.y = worldY;
     }
 
-    renderExplosions(obj: ServerExplosion)
+    renderExplosions(obj: ServerExplosion, sound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound)
     {
         const explosion = new Explosion(this.scene);
 
@@ -115,12 +112,14 @@ export default class Battlefield
         explosion.y = worldY;
 
         this.scene.cameras.main.shake(200, 0.01);
+        sound.play();
         // TODO: Explosion sound here
     }
 
     clearPlayers()
     {
-        for(const [id, player] of this._players) {
+        for(const [id, player] of this._players)
+        {
             player.destroy();
             this._players.delete(id);
         }
@@ -128,7 +127,8 @@ export default class Battlefield
 
     clearAirstrikes()
     {
-        for(const [id, airstrike] of this._airstrikes) {
+        for(const [id, airstrike] of this._airstrikes)
+        {
             airstrike.destroy();
             this._airstrikes.delete(id);
         }

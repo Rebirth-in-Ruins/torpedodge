@@ -87,10 +87,17 @@ class Game extends Phaser.Scene
     private width: number;
     private height: number;
 
+    private muted: boolean = true;
+    private soundMuted: boolean = true;
+
+    private music: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+    private explodeSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+
     preload ()
-{
+    {
+        // Images
         this.load.image('arrow', 'assets/arrow.png');
-        this.load.image('ship', 'assets/ship (1).png');
+        this.load.image('ship', 'assets/ship.png');
         this.load.image('bomb', 'assets/bomb.png');
         this.load.image('explosion', 'assets/explosion.png');
 
@@ -98,10 +105,19 @@ class Game extends Phaser.Scene
         this.load.image('medium_shadow', 'assets/shadow_medium.png');
         this.load.image('big_shadow', 'assets/shadow_big.png');
 
+        this.load.image('music_muted', 'assets/music_muted.png');
+        this.load.image('music_unmuted', 'assets/music_unmuted.png');
+
+        this.load.image('sound_muted', 'assets/sound_muted.png');
+        this.load.image('sound_unmuted', 'assets/sound_unmuted.png');
+
+        // Animations
         this.load.aseprite('bomba', 'assets/bomba.png', 'assets/bomba.json');
 
+        // Audio
         this.load.audio('explosion1', 'assets/explosion1.mp3');
         this.load.audio('explosion2', 'assets/explosion2.mp3');
+        this.load.audio('background_music', 'assets/background_music.mp3');
     }
 
     create ()
@@ -147,6 +163,12 @@ class Game extends Phaser.Scene
 
         this.anims.createFromAseprite('bomba');
 
+        this.music = this.sound.add('background_music');
+        this.music.setLoop(true);
+
+        this.explodeSound = this.sound.add('explosion1'); // TODO: decide on sound
+        this.explodeSound.setVolume(0.3); // TODO: reduce volume
+        this.explodeSound.setMute(true);
 
         // TODO: Environment variable for this
         const conn = new WebSocket('ws://localhost:8080' + '/play?spectate=true');
@@ -157,15 +179,50 @@ class Game extends Phaser.Scene
 
             this.statusText.text = 'Connection lost to server. Please reload';
         };
-        conn.onerror = function (evt)
-        {
-                console.log(evt);
-            }
         conn.onmessage = (evt) =>
         {
             const obj = JSON.parse(evt.data);
             this.render(obj);
         };
+
+        // TODO: Put into classes
+        const button = this.add.image(width - 40, 30, 'music_muted');
+        button.setScale(2, 2);
+        button.setInteractive({ useHandCursor: true });
+        button.on('pointerdown', () =>
+        {
+            this.muted = !this.muted;
+            if(this.muted)
+            {
+                button.setTexture('music_muted');
+                this.music.stop();
+            }
+            else 
+            {
+                button.setTexture('music_unmuted');
+                this.music.play();
+            }
+
+        })
+
+        const button2 = this.add.image(width - 90, 30, 'sound_muted');
+        button2.setScale(2, 2);
+        button2.setInteractive({ useHandCursor: true });
+        button2.on('pointerdown', () =>
+        {
+            this.soundMuted = !this.soundMuted;
+            if(this.soundMuted)
+            {
+                button2.setTexture('sound_muted');
+                this.explodeSound.setMute(true);
+            }
+            else 
+            {
+                button2.setTexture('sound_unmuted');
+                this.explodeSound.setMute(false);
+            }
+
+        })
 
         // const button = this.add.text(800, 500, 'Play Game', {
         //     fontFamily: 'Arial',
@@ -222,7 +279,7 @@ class Game extends Phaser.Scene
         // Render explosions
         for(const obj of gamestate.explosions)
         {
-            this.battlefield.renderExplosions(obj);
+            this.battlefield.renderExplosions(obj, this.explodeSound);
         }
 
 
