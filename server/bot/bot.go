@@ -13,6 +13,10 @@ const (
 	urlStr = "ws://localhost:8080/play"
 )
 
+var (
+	directions = []string{"LEFT", "DOWN", "RIGHT", "UP"}
+)
+
 func main() {
 	conn, _, err := websocket.Dial(context.Background(), "ws://localhost:8080/play", nil)
 	if err != nil {
@@ -26,8 +30,10 @@ func main() {
 		panic(err)
 	}
 
+	i := 0
+
 	for {
-		// Receive next state
+		// RECEIVE NEXT STATE
 		var state game.GameStateResponse
 		err = wsjson.Read(context.Background(), conn, &state)
 		if err != nil {
@@ -35,12 +41,16 @@ func main() {
 		}
 		fmt.Printf("%#v\n", state)
 
-		// Process
+		// PROCESS
+		// Sail in a circle
+		action := directions[i % 4]
 
-		// Send action
-		err = wsjson.Write(context.Background(), conn, "LEFT")
+		// SEND ACTION
+		err = wsjson.Write(context.Background(), conn, action)
 		if err != nil {
 			panic(err)
 		}
+
+		i++
 	}
 }

@@ -18,24 +18,25 @@ import (
 type State struct {
 	sync.Mutex
 
+	// entities on the battlefield
 	players map[int]*Player
+	airstrikes map[int]*Airstrike
+	explosions map[int]*Explosion
+
+	// input of every player
 	inputs map[int]Input
 
+	// give IDs to airstrikes
+	counter int
+
+	// entities placed on a coordinate system
 	playerPositions [][]*Player
+	airstrikePositions [][]*Airstrike
+	explosionPositions [][]*Explosion
+
+	// game settings
 	Settings Settings
 }
-
-func New(settings Settings) *State {
-	// TODO: We might not need sync.Maps at all...
-	return &State{
-		players: make(map[int]*Player),
-		inputs: make(map[int]Input, 0),
-
-		playerPositions: datastr.NewGrid[Player](settings.GridSize),
-		Settings: settings,
-	}
-}
-
 
 func (g *State) RunSimulation() {
 	g.Lock()
@@ -53,14 +54,31 @@ func (g *State) RunSimulation() {
 	// Apply inputs and check for collision
 	for _, input := range inputs {
 		if payload, ok := input.message.(protocol.Move); ok {
-			g.playerMoves(input.id, payload.Direction)
+			g.movePlayer(input.id, Direction(payload.Direction))
 		}
 	}
+
+	// Remove explosions from previous turn
+	clear(g.explosions)
+	g.explosionPositions = datastr.NewGrid[Explosion](g.Settings.GridSize)
+
+	// Shorten the fuse / detonate airstrikes
+	for _, airstrike := range g.airstrikes {
+		airstrike.FuseCount -= 1
+		if airstrike.Detonated() {
+			g.removeAirstrike(airstrike)
+		}
+	}
+
+	// Find players that were hit by explosion
+
+	// Drop more airstrikes
+	g.spawnAirstrike()
 
 	// Let new players join after everything is safe
 	for _, input := range inputs {
 		if payload, ok := input.message.(protocol.Join); ok {
-			g.playerJoins(input.id, payload.Name)
+			g.spawnPlayer(input.id, payload.Name)
 		}
 	}
 	slog.Info("current inputs", slog.String("inputs", fmt.Sprintf("%v", inputs)))
@@ -69,25 +87,16 @@ func (g *State) RunSimulation() {
 	clear(g.inputs)
 }
 
-func (g *State) playerJoins(id int, name string) {
+func (g *State) spawnPlayer(id int, name string) {
 	// Find free space
-	var x, y int
-	for {
-		x = rand.IntN(g.Settings.GridSize)
-		y = rand.IntN(g.Settings.GridSize)
+	x, y := g.getFreeRandomTile()
 
-		// Retry TODO: Inefficient
-		if g.playerPositions[x][y] != nil {
-			continue
-		}
-
-		break
-	}
 	player := &Player{
 		ID: id,
 		Name:        name,
 		X:           x,
 		Y:           y,
+		Rotation:    Left,
 		Health:      g.Settings.StartHealth,
 		BombCount:   g.Settings.InventorySize,
 		BombRespawn: 0,
@@ -99,8 +108,40 @@ func (g *State) playerJoins(id int, name string) {
 	slog.Info("player joined", slog.String("name", player.Name))
 }
 
+func (g *State) spawnAirstrike() {
+	// Find free space
+	x, y := g.getFreeRandomTile()
+
+	airstrike := &Airstrike{
+		ID: g.counter,
+		X:         x,
+		Y:         y,
+		FuseCount: g.Settings.AirstrikeFuseLength,
+	}
+	g.counter++
+
+	g.airstrikePositions[x][y] = airstrike
+	g.airstrikes[airstrike.ID] = airstrike
+
+	slog.Debug("airstrike spawned", slog.Int("x", airstrike.X), slog.Int("y", airstrike.Y))
+}
+
+func (g *State) spawnExplosion(x int, y int) {
+	explosion := &Explosion{
+		ID: g.counter,
+		X:         x,
+		Y:         y,
+	}
+	g.counter++ // TODO: Should be a method
+
+	g.explosionPositions[x][y] = explosion
+	g.explosions[explosion.ID] = explosion
+
+	slog.Debug("explosion spawned", slog.Int("x", explosion.X), slog.Int("y", explosion.Y))
+}
+
 // A websocket client will report that a player has left because their connection is gone.
-func (g *State) PlayerLeaves(id int) {
+func (g *State) RemovePlayer(id int) {
 	g.Lock()
 	defer g.Unlock()
 
@@ -108,11 +149,29 @@ func (g *State) PlayerLeaves(id int) {
 	if !ok {
 		panic("could not get player") // TODO:
 	}
+	delete(g.players, id)
 
 	g.playerPositions[player.X][player.Y] = nil
 }
 
-func (g *State) playerMoves(id int, direction protocol.Direction) {
+func (g *State) removeAirstrike(as *Airstrike) {
+	airstrike, ok := g.airstrikes[as.ID]
+	if !ok {
+		panic("could not get player") // TODO:
+	}
+	delete(g.airstrikes, as.ID)
+
+	g.airstrikePositions[airstrike.X][airstrike.Y] = nil
+
+	// TODO: Spawn explosions
+
+	for i := 0; i < g.Settings.GridSize; i++ {
+		g.spawnExplosion(airstrike.X, i);
+		g.spawnExplosion(i, airstrike.Y);
+	}
+}
+
+func (g *State) movePlayer(id int, direction Direction) {
 	player, ok := g.players[id]
 	if !ok {
 		panic("could not get player") // TODO:
@@ -122,16 +181,17 @@ func (g *State) playerMoves(id int, direction protocol.Direction) {
 	newY := player.Y
 
 	switch(direction) {
-	case protocol.Left:
+	case Left:
 		newX -= 1
-	case protocol.Right:
+	case Right:
 		newX += 1
-	case protocol.Up:
-		newY += 1
-	case protocol.Down:
+	case Up:
 		newY -= 1
+	case Down:
+		newY += 1
 	}
 
+	// TODO: Collision with others
 	if g.isOutOfBounds(newX, newY) {
 		return
 	}
@@ -140,6 +200,7 @@ func (g *State) playerMoves(id int, direction protocol.Direction) {
 	g.playerPositions[newX][newY] = player
 	player.X = newX
 	player.Y = newY
+	player.Rotation = direction
 
 	g.players[id] = player // TODO: Is this even necessary?
 }
@@ -149,6 +210,21 @@ func (g *State) isOutOfBounds(x int, y int) bool {
 	vertical := y < 0 || g.Settings.GridSize <= y
 
 	return horizontal || vertical;
+}
+
+func (g *State) getFreeRandomTile() (int, int) {
+	var x, y int
+	for {
+		x = rand.IntN(g.Settings.GridSize)
+		y = rand.IntN(g.Settings.GridSize)
+
+		// Retry TODO: Inefficient
+		if g.playerPositions[x][y] != nil || g.airstrikePositions[x][y] != nil {
+			continue
+		}
+
+		return x, y
+	}
 }
 
 type Input struct {
@@ -164,5 +240,21 @@ func (g *State) StoreInput(id int, message protocol.Message) {
 	defer g.Unlock()
 
 	g.inputs[id] = Input{id: id, message: message, time: time.Now()}
+}
+
+func New(settings Settings) *State {
+	return &State{
+		Mutex:              sync.Mutex{},
+		players:            make(map[int]*Player),
+		airstrikes:         make(map[int]*Airstrike),
+		explosions:         make(map[int]*Explosion),
+		inputs:             make(map[int]Input),
+
+		counter:            0,
+		playerPositions:    datastr.NewGrid[Player](settings.GridSize),
+		airstrikePositions: datastr.NewGrid[Airstrike](settings.GridSize),
+		explosionPositions: datastr.NewGrid[Explosion](settings.GridSize),
+		Settings:           settings,
+	}
 }
 

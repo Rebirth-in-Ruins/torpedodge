@@ -17,5 +17,8 @@ type Settings struct {
 
 	// how many lives the player has 
 	StartHealth int `json:"startHealth"`
+
+	// how many turns until the airstrike detonates
+	AirstrikeFuseLength int `json:"airstrikeFuseLength"`
 }
 

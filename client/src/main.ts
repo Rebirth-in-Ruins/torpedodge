@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import Player from './player';
+// import Player from './player';
 import ProgressBar from './progressbar';
 import Battlefield from './battlefield';
-import { Direction } from './direction';
+// import { Direction } from './direction';
 import Leaderboard from './leaderboard';
 
 // TODO: Better name, better location
@@ -10,63 +10,77 @@ export class ServerPlayer
 {
     id: number
 
-	name: string
+    name: string
 
-	// coordinates
-	x: number
-	y: number
+    // coordinates
+    x: number
+    y: number
+    rotation: string
 
-	// amount of lives
-	health: number
+    // amount of lives
+    health: number
 
-	// allowed  
-	bombCount: number
+    // allowed  
+    bombCount: number
 
-	// amount of turns until bomb is available
-	bombRespawn: number
+    // amount of turns until bomb is available
+    bombRespawn: number
+}
+
+export class ServerAirstrike
+{
+    id: number
+
+    // coordinates
+    x: number
+    y: number
+
+    // amount of turns until it explodes
+    fuseCount: number
+}
+
+export class ServerExplosion
+{
+    id: number
+
+    x: number
+    y: number
 }
 
 class ServerSettings
 {
-	// time until inputs are evaluated and game state is updated
-	turnDuration: number
+    // time until inputs are evaluated and game state is updated
+    turnDuration: number
 
-	// size of the map
-	gridSize: number
+    // size of the map
+    gridSize: number
 
-	// how many bombs can be stored at once
-	inventorySize: number
+    // how many bombs can be stored at once
+    inventorySize: number
 
-	// how many turns it takes before a player can get another bomb
-	bombRespawnTime: number
+    // how many turns it takes before a player can get another bomb
+    bombRespawnTime: number
 
-	// how many lives the player has 
-	startHealth: number
+    // how many lives the player has 
+    startHealth: number
 }
 
 class GameState
 {
     players: Array<ServerPlayer>
+    airstrikes: Array<ServerAirstrike>
+    explosions: Array<ServerExplosion>
     settings: ServerSettings
 }
 
 class Game extends Phaser.Scene
 {
-    // private keys: any;
-
-    // private TURN_DURATION: number = 1500;
-
     private currentTurnDuration: number = 0;
 
-    // private player: Player;
     private progressBar: ProgressBar;
     private battlefield: Battlefield;
 
     private leaderboard: Leaderboard;
-
-    // private direction: Direction;
-
-    // private _tileSize: number;
 
     private statusText: Phaser.GameObjects.Text;
 
@@ -74,7 +88,7 @@ class Game extends Phaser.Scene
     private height: number;
 
     preload ()
-    {
+{
         this.load.image('arrow', 'assets/arrow.png');
         this.load.image('ship', 'assets/ship (1).png');
         this.load.image('bomb', 'assets/bomb.png');
@@ -85,6 +99,9 @@ class Game extends Phaser.Scene
         this.load.image('big_shadow', 'assets/shadow_big.png');
 
         this.load.aseprite('bomba', 'assets/bomba.png', 'assets/bomba.json');
+
+        this.load.audio('explosion1', 'assets/explosion1.mp3');
+        this.load.audio('explosion2', 'assets/explosion2.mp3');
     }
 
     create ()
@@ -130,6 +147,7 @@ class Game extends Phaser.Scene
 
         this.anims.createFromAseprite('bomba');
 
+
         // TODO: Environment variable for this
         const conn = new WebSocket('ws://localhost:8080' + '/play?spectate=true');
         conn.onclose = () =>
@@ -141,13 +159,33 @@ class Game extends Phaser.Scene
         };
         conn.onerror = function (evt)
         {
-            console.log(evt);
-        }
+                console.log(evt);
+            }
         conn.onmessage = (evt) =>
         {
             const obj = JSON.parse(evt.data);
             this.render(obj);
         };
+
+        // const button = this.add.text(800, 500, 'Play Game', {
+        //     fontFamily: 'Arial',
+        //     fontSize: '32px',
+        //     color: '#ffffff',
+        //     align: 'center',
+        //     fixedWidth: 260,
+        //     backgroundColor: '#2d2d2d'
+        // }).setPadding(32).setOrigin(0.5);
+        //
+        // button.setInteractive({ useHandCursor: true });
+        // button.on('pointerdown', () => {
+        //
+        // });
+        // button.on('pointerover', () => {
+        //     button.setBackgroundColor('#8d8d8d');
+        // });
+        // button.on('pointerout', () => {
+        //     button.setBackgroundColor('#2d2d2d');
+        // });
     }
 
     // private currentGameState: GameState;
@@ -157,28 +195,34 @@ class Game extends Phaser.Scene
     {
         // Render map when we received the settings (if the settings change the client is out of sync but cba).
         if(this.settings === undefined)
-        {
+    {
             this.settings = gamestate.settings;
             this.settings.turnDuration /= 1_000_000; // convert from nanoseconds
             this.battlefield = new Battlefield(this, this.width, this.height, this.settings.gridSize);
             this.statusText.text = '';
         }
 
+        console.log(gamestate);
+
         // Render players
+        this.battlefield.clearPlayers();
         for(const obj of gamestate.players)
         {
-            this.battlefield.renderPlayer(obj)
+            this.battlefield.renderPlayer(obj);
         }
 
-        // Remove players that left
-        // TODO: Vielleicht einfacher alles zu destroyen?
-        const ids = gamestate.players.map(p => p.id);
-        for(const id of this.battlefield.playerIds)
+        // Render airstrikes
+        this.battlefield.clearAirstrikes();
+        for(const obj of gamestate.airstrikes)
         {
-            if(!ids.includes(id))
-            {
-                this.battlefield.removePlayer(id);
-            }
+            this.battlefield.renderAirstrike(obj);
+
+        }
+
+        // Render explosions
+        for(const obj of gamestate.explosions)
+        {
+            this.battlefield.renderExplosions(obj);
         }
 
 

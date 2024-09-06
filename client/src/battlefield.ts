@@ -3,7 +3,7 @@ import Coordinates from './coordinates';
 import Bomb from './bomb';
 import Explosion from './explosion';
 import Airstrike from './airstrike';
-import { ServerPlayer } from './main';
+import { ServerAirstrike, ServerExplosion, ServerPlayer } from './main';
 import { Direction } from './direction';
 
 export default class Battlefield
@@ -23,9 +23,11 @@ export default class Battlefield
     // private _players: Map<Player, Coordinates>; 
     private _bombs: Map<Bomb, Coordinates>;
     private _explosions: Map<Explosion, Coordinates>;
-    private _airstrikes: Map<Airstrike, Coordinates>;
+    // private _airstrikes: Map<Airstrike, Coordinates>;
 
     private scene: Phaser.Scene;
+
+    private explodeSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
 
     constructor(scene: Phaser.Scene, gameWidth: number, gameHeight: number, gridCount: number)
     {
@@ -42,6 +44,9 @@ export default class Battlefield
         const g1 = scene.add.grid(this.MARGIN_LEFT, this.MARGIN_TOP, gridSize, gridSize, this._tileSize, this._tileSize, 0x0000cc, 1, 0x000000, 0.5);
         g1.setOrigin(0,0);
 
+        this.explodeSound = scene.sound.add('explosion1');
+        this.explodeSound.setVolume(0.3);
+
         this.scene = scene;
         this.map = [];
         this.bombMap = [];
@@ -49,7 +54,7 @@ export default class Battlefield
 
         this._bombs = new Map();
         // this._players = new Map();
-        this._explosions = new Map();
+        // this._explosions = new Map();
         this._airstrikes = new Map();
 
         const init = (arr) =>
@@ -72,6 +77,7 @@ export default class Battlefield
     }
 
     private _players: Map<number, Player> = new Map(); 
+    private _airstrikes: Map<number, Airstrike> = new Map(); 
 
     renderPlayer(obj: ServerPlayer)
     {
@@ -80,13 +86,54 @@ export default class Battlefield
         // New player joined and needs to be added
         if(player == undefined)
         {
-            player = new Player(this.scene, obj.name, this._tileSize); // TODO: Settings
+            player = new Player(this.scene, obj.name, this._tileSize);
             this._players.set(obj.id, player);
         }
 
         const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);
         player.x = worldX;
         player.y = worldY;
+        player.lookDirection(obj.rotation);
+    }
+
+    renderAirstrike(obj: ServerAirstrike)
+    {
+        const airstrike = new Airstrike(this.scene, obj.fuseCount);
+        this._airstrikes.set(obj.id, airstrike);
+
+        const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);
+        airstrike.x = worldX;
+        airstrike.y = worldY;
+    }
+
+    renderExplosions(obj: ServerExplosion)
+    {
+        const explosion = new Explosion(this.scene);
+
+        const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);
+        explosion.x = worldX;
+        explosion.y = worldY;
+
+        this.scene.cameras.main.shake(200, 0.01);
+        // TODO: Explosion sound here
+    }
+
+    clearPlayers()
+    {
+        for(const [id, player] of this._players) {
+            player.destroy();
+            this._players.delete(id);
+        }
+    }
+
+    clearAirstrikes()
+    {
+        for(const [id, airstrike] of this._airstrikes) {
+            airstrike.destroy();
+            this._airstrikes.delete(id);
+        }
+
+        // this.explodeSound.play(); // TODO: Can this be less annoying?
     }
 
     removePlayer(id: number)
@@ -115,68 +162,6 @@ export default class Battlefield
         const [worldX, worldY] = this.gridToWorld(x, y);
         bomb.x = worldX;
         bomb.y = worldY;
-    }
-
-    spawnExplosion(x: number, y: number)
-    {
-        const explosion = new Explosion(this.scene);
-        this._explosions.set(explosion, new Coordinates(x, y));
-
-        const [worldX, worldY] = this.gridToWorld(x, y);
-        explosion.x = worldX;
-        explosion.y = worldY;
-
-        // Player collision
-        const player = this.map[x][y];
-        if(player !== null) {
-            player.loseHealth();
-            // TODO: Losing Health animation
-        }
-
-        this.scene.cameras.main.shake(200, 0.01);
-    }
-
-    spawnAirstrikes()
-    {
-        let x = this.randomNumber(0, this.gridCount-1);
-        let y = this.randomNumber(0, this.gridCount-1);
-
-        // Server: Only spawn airstrike if no other entity already exists on that space
-        const bomb = this.bombMap[x][y];
-        const player = this.map[x][y];
-        const other = this.airstrikeMap[x][y];
-        if(bomb !== null || player !== null || other !== null)
-            return;
-
-        const airstrike = new Airstrike(this.scene);
-        this._airstrikes.set(airstrike, new Coordinates(x, y));
-
-        const [worldX, worldY] = this.gridToWorld(x, y);
-        airstrike.x = worldX;
-        airstrike.y = worldY;
-
-        this.airstrikeMap[x][y] = airstrike;
-    }
-
-    randomNumber(min: number, max: number): number
-    {
-        return Math.floor(Math.random() * (max - min + 1) + min);
-    }
-
-    removeAirstrike(airstrike: Airstrike)
-    {
-        const { x, y } = this._airstrikes.get(airstrike);
-
-        this.airstrikeMap[x][y] = null;
-        this._airstrikes.delete(airstrike);
-        airstrike.destroy();
-
-        for(let i = 0; i < this.gridCount; i++)
-        {
-            this.spawnExplosion(x, i);
-            this.spawnExplosion(i, y);
-        }
-
     }
 
     removeBomb(bomb: Bomb)

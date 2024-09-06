@@ -81,7 +81,7 @@ func (c *Client) writeMessages() {
 
 		// TODO: Delete on Read or write pipeline?
 		if !c.spectator {
-			c.server.state.PlayerLeaves(c.id)
+			c.server.state.RemovePlayer(c.id)
 		}
 	}()
 

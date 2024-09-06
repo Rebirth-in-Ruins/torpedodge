@@ -29,6 +29,8 @@ export default class Player
         this.ship.displayHeight = this.tileSize * this.SCALE_FACTOR;
 
         this.arrow = scene.add.image(-100, -100, 'arrow');
+        this.arrow.alpha = 0; // TODO: Show arrow
+
         this._name = name;
 
         this.nameTag = scene.add.text(10, 10, this.fullName(), { font: '10px monospace', strokeThickness: 2, stroke: '#000', align: 'center'});
@@ -48,7 +50,7 @@ export default class Player
 
     placeArrow(direction: Direction)
     {
-        this.arrow.alpha = 1;
+        this.arrow.alpha = 0; // TODO: Show arrows
 
         switch(direction)
         {
@@ -74,32 +76,34 @@ export default class Player
         }
     }
 
-    lookUp() 
+    lookDirection(direction: string)
     {
-        this.ship.angle = 180; 
-        this.arrow.angle = -90;
-        this.placeArrow(Direction.Up);
-    }
-
-    lookDown() 
-    {
-        this.ship.angle = 0;
-        this.arrow.angle = 90;
-        this.placeArrow(Direction.Down);
-    }
-
-    lookLeft() 
-    {
-        this.ship.angle = 90;
-        this.arrow.angle = 180;
-        this.placeArrow(Direction.Left);
-    }
-
-    lookRight() 
-    {
-        this.ship.angle = -90;
-        this.arrow.angle = 0;
-        this.placeArrow(Direction.Right);
+        switch(direction)
+            {
+            case "UP":
+                this.ship.angle = 180; 
+                this.arrow.angle = -90;
+                this.placeArrow(Direction.Up);
+                break;
+            case "DOWN":
+                this.ship.angle = 0;
+                this.arrow.angle = 90;
+                this.placeArrow(Direction.Down);
+                break;
+            case "LEFT":
+                this.ship.angle = 90;
+                this.arrow.angle = 180;
+                this.placeArrow(Direction.Left);
+                break;
+            case "RIGHT":
+                this.ship.angle = -90;
+                this.arrow.angle = 0;
+                this.placeArrow(Direction.Right);
+                break;
+            default:
+                this.arrow.alpha = 0;
+                break;
+        }
     }
 
     loseHealth()

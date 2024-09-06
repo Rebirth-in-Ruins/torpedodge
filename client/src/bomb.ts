@@ -1,6 +1,6 @@
 export default class Bomb
 {
-    private START_COUNT: number = 3;
+    // private START_COUNT: number = 3;
 
     private countDown: number;
     private text: Phaser.GameObjects.Text;
@@ -25,7 +25,7 @@ export default class Bomb
         return this.countDown <= 0
     }
 
-    tick()
+    tick() // TODO: Remove all ticks()
     {
         this.countDown--;
 

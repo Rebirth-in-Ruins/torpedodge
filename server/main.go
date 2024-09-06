@@ -11,11 +11,12 @@ import (
 
 func main() {
 	gameState := game.New(game.Settings{
-		TurnDuration: 2 * time.Second,
-		GridSize: 12,
-		InventorySize: 2,
-		BombRespawnTime: 3,
-		StartHealth: 3,
+		TurnDuration:        2 * time.Second,
+		GridSize:            12,
+		InventorySize:       2,
+		BombRespawnTime:     3,
+		StartHealth:         3,
+		AirstrikeFuseLength: 3,
 	})
 
 	server, mux := websockets.New(gameState)

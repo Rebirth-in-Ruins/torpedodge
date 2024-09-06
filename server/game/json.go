@@ -2,23 +2,42 @@ package game
 
 import (
 	"encoding/json"
-	"maps"
-	"slices"
 )
 
 type GameStateResponse struct {
-	Players []*Player `json:"players"`
+	Players []Player `json:"players"`
+	Airstrikes []Airstrike `json:"airstrikes"`
+	Explosions []Explosion `json:"explosions"`
 	Settings Settings `json:"settings"`
 }
 
 func (g *State) JSON() []byte {
 	g.Lock()
-	players := slices.Collect(maps.Values(g.players))
-	g.Unlock()
+	defer g.Unlock()
+
+	// Players
+	players := make([]Player, 0)
+	for _, player := range g.players {
+		players = append(players, *player)
+	}
+
+	// Airstrikes
+	airstrikes := make([]Airstrike, 0)
+	for _, airstrike := range g.airstrikes {
+		airstrikes = append(airstrikes, *airstrike)
+	}
+
+	// Explosions
+	explosions := make([]Explosion, 0)
+	for _, explosion := range g.explosions {
+		explosions = append(explosions, *explosion)
+	}
 
 	response := GameStateResponse{
-		Players: players,
-		Settings: g.Settings,
+		Players:    players,
+		Airstrikes: airstrikes,
+		Explosions: explosions,
+		Settings:   g.Settings,
 	}
 
 	b, err := json.Marshal(response)

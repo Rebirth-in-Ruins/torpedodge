@@ -17,18 +17,10 @@ type (
 	}
 
 	Move struct{
-		Direction Direction
+		Direction string
 	}
 )
 
-type Direction string
-
-const (
-	Left Direction = "LEFT"
-	Right Direction = "RIGHT"
-	Down Direction = "DOWN"
-	Up Direction = "UP"
-)
 
 func (j Join) String() string {
 	return fmt.Sprintf("JOIN(%v)", j.Name)
@@ -43,13 +35,13 @@ func Parse(str string) Message {
 	case strings.HasPrefix(str, "JOIN "):
 		return Join{Name: str[5:]}
 	case strings.HasPrefix(str, "LEFT"):
-		return Move{Direction: Left}
+		return Move{Direction: "LEFT"}
 	case strings.HasPrefix(str, "RIGHT"):
-		return Move{Direction: Right}
+		return Move{Direction: "RIGHT"}
 	case strings.HasPrefix(str, "UP"):
-		return Move{Direction: Up}
+		return Move{Direction: "UP"}
 	case strings.HasPrefix(str, "DOWN"):
-		return Move{Direction: Down}
+		return Move{Direction: "DOWN"}
 	default:
 		return Unknown{Raw: str}
 	}

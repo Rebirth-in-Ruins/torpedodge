@@ -1,35 +1,14 @@
 export default class Airstrike
 {
-    private START_COUNT: number = 3;
-
-    private countDown: number;
     private text: Phaser.GameObjects.Text;
     private image: Phaser.GameObjects.Image;
 
-    constructor(scene: Phaser.Scene)
+    // TODO: rename fuseCount (everywhere else) to fuseLength
+    constructor(scene: Phaser.Scene, fuseLength: number)
     {
-        this.image = scene.add.image(50, 50, 'small_shadow');
-    
-        this.countDown = this.START_COUNT;
+        this.image = scene.add.image(-100, -100, 'small_shadow');
 
-        this.text = scene.add.text(50, 50, '' + this.countDown)
-            .setFontSize(16)
-            .setFontStyle('bold')
-            .setFontFamily('Arial')
-            .setStroke('black', 3)
-            .setOrigin(0.5, 0.5);
-    }
-
-    get detonated(): boolean
-    {
-        return this.countDown <= 0
-    }
-
-    tick()
-    {
-        this.countDown--;
-
-        switch(this.countDown)
+        switch(fuseLength)
         {
             case 3:
                 this.image.setTexture('small_shadow');
@@ -40,14 +19,18 @@ export default class Airstrike
             case 1:
                 this.image.setTexture('big_shadow');
                 break;
+            default:
+                this.image.setTexture('small_shadow');
+                break;
         }
 
-        if(this.countDown > 0)
-        {
-            this.text.text = '' + this.countDown;
-        }
+        this.text = scene.add.text(50, 50, '' + fuseLength)
+            .setFontSize(16)
+            .setFontStyle('bold')
+            .setFontFamily('Arial')
+            .setStroke('black', 3)
+            .setOrigin(0.5, 0.5);
     }
-
 
     destroy()
     {
