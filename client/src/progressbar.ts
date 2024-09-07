@@ -1,37 +1,45 @@
-export default class ProgressBar {
-    graphics: Phaser.GameObjects.Graphics;
+export default class ProgressBar
+{
+    private graphics: Phaser.GameObjects.Graphics;
+    private text: Phaser.GameObjects.Text;
 
     // constant fields
-    MARGIN_LEFT: number = 0.1;
-    MARGIN_TOP: number = 0.9
-    WIDTH: number = 0.8;
-    HEIGHT: number = 20;
-    RADIUS_OUTER: number = 10;
-    RADIUS_INNER: number = 6;
+    private MARGIN_LEFT: number = 0.1;
+    private MARGIN_TOP: number = 0.9
+    private WIDTH: number = 0.8;
+    private HEIGHT: number = 20;
+    private RADIUS_OUTER: number = 10;
+    private RADIUS_INNER: number = 6;
 
     // set in constructor
-    x: number;
-    y: number;
-    width: number;
+    private x: number;
+    private y: number;
+    private width: number;
 
     // set by user (between 0 and 1)
-    progress: number;
+    private progress: number;
 
-    constructor(scene: Phaser.Scene, gameWidth: number, gameHeight: number) {
-        this.graphics = scene.add.graphics({ lineStyle: { width: 1, color: 0xffffff }, fillStyle: { color: 0xffffff } });
+    constructor(scene: Phaser.Scene, gameWidth: number, gameHeight: number)
+    {
+        this.graphics = scene.add.graphics({ lineStyle: { width: 2, color: 0xffffff }, fillStyle: { color: 0xffffff } });
 
         this.x = gameWidth*this.MARGIN_LEFT;
         this.y = gameHeight*this.MARGIN_TOP;
         this.width = gameWidth*this.WIDTH;
 
+        this.text = scene.add.text(this.x - 50, this.y + 8, 'Next turn')
+            .setFontSize(16)
+            .setFontStyle('bold')
+            .setFontFamily('Arial')
+            .setStroke('black', 2)
+            .setOrigin(0.5, 0.5);
+
+
         this.setProgress(0);
     }
 
-    getProgress(): number {
-        return this.progress;
-    }
-
-    setProgress(progress: number) {
+    setProgress(progress: number)
+    {
         this.progress = this.clamp(progress, 0, 1);
 
         let width = this.progress*this.width;
@@ -46,7 +54,8 @@ export default class ProgressBar {
         this.graphics.fillRoundedRect(this.x + 3, this.y + 3, width - 7, this.HEIGHT - 5, this.RADIUS_INNER);
     }
 
-    clamp(value: number, min: number, max: number): number {
+    clamp(value: number, min: number, max: number): number
+    {
         return Math.min(Math.max(value, min), max);
     }
 }
