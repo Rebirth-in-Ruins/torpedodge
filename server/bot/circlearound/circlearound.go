@@ -1,3 +1,4 @@
+// Package main implements a bot that circles around and drops a bomb occasionally.
 package main
 
 import (
@@ -18,7 +19,7 @@ var (
 )
 
 func main() {
-	conn, _, err := websocket.Dial(context.Background(), "ws://localhost:8080/play", nil)
+	conn, _, err := websocket.Dial(context.Background(), urlStr, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -39,9 +40,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		// fmt.Printf("%#v\n", state)
 
-		// PROCESS
 		// Sail in a circle
 		action := directions[i % len(directions)]
 
