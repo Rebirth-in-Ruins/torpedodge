@@ -14,7 +14,7 @@ const (
 )
 
 var (
-	directions = []string{"LEFT", "DOWN", "RIGHT", "UP"}
+	directions = []string{"LEFT", "BOMB", "LEFT", "DOWN", "DOWN", "RIGHT", "RIGHT", "UP", "UP"}
 )
 
 func main() {
@@ -39,11 +39,13 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("%#v\n", state)
+		// fmt.Printf("%#v\n", state)
 
 		// PROCESS
 		// Sail in a circle
-		action := directions[i % 4]
+		action := directions[i % len(directions)]
+
+		fmt.Println(action)
 
 		// SEND ACTION
 		err = wsjson.Write(context.Background(), conn, action)

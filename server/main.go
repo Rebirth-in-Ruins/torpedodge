@@ -17,6 +17,7 @@ func main() {
 		BombRespawnTime:     3,
 		StartHealth:         3,
 		AirstrikeFuseLength: 3,
+		BombFuseLength:      3,
 	})
 
 	server, mux := websockets.New(gameState)

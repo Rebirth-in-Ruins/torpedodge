@@ -25,6 +25,15 @@ export class ServerPlayer
     bombRespawn: number
 }
 
+export class ServerBomb
+{
+	id: number
+	playerId: number
+	x: number
+	y: number
+	fuseCount: number
+}
+
 export class ServerAirstrike
 {
     id: number
@@ -68,6 +77,7 @@ class GameState
     players: Array<ServerPlayer>
     airstrikes: Array<ServerAirstrike>
     explosions: Array<ServerExplosion>
+    bombs: Array<ServerBomb>
     settings: ServerSettings
 }
 
@@ -94,6 +104,9 @@ class Game extends Phaser.Scene
 
     private music: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
     private explodeSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+    //
+    // private currentGameState: GameState;
+    private settings: ServerSettings;
 
     preload ()
     {
@@ -124,13 +137,9 @@ class Game extends Phaser.Scene
 
     create ()
     {
-        // this.keys = this.input.keyboard.addKeys('W,A,S,D,SPACE');
-
         const { width, height } = this.sys.game.canvas;
         this.width = width;
         this.height = height;
-
-        // this.direction = Direction.Stay;
 
         this.statusText = this.add.text(width/2, height - 32, 'Loading Game...')
             .setFontSize(32)
@@ -236,9 +245,6 @@ class Game extends Phaser.Scene
         });
     }
 
-    // private currentGameState: GameState;
-    private settings: ServerSettings;
-
     render(gamestate: GameState)
     {
         // Render map when we received the settings (if the settings change the client is out of sync but cba).
@@ -264,7 +270,13 @@ class Game extends Phaser.Scene
         for(const obj of gamestate.airstrikes)
         {
             this.battlefield.renderAirstrike(obj);
+        }
 
+        // Render bombs
+        this.battlefield.clearBombs();
+        for(const obj of gamestate.bombs)
+        {
+            this.battlefield.renderBomb(obj);
         }
 
         // Render explosions
@@ -273,9 +285,7 @@ class Game extends Phaser.Scene
             this.battlefield.renderExplosions(obj, this.explodeSound, this.focusLost);
         }
 
-
         this.currentTurnDuration = 0;
-        // this.currentGameState = gamestate;
     }
 
     update(_: number, delta: number) 
@@ -286,60 +296,6 @@ class Game extends Phaser.Scene
 
         this.currentTurnDuration += delta;
         this.progressBar.setProgress(this.currentTurnDuration / this.settings.turnDuration);
-    }
-
-    // Apply simulation
-    // - Move (moveAndCollide)
-    // - Check collision (moveAndCollide)
-    // - Detonate bombs 
-    // - Kill detonated players
-    tick()
-    {
-        // Move players + do collision
-        // for(const player of this.battlefield.players)
-        // {
-        //     player.tick();
-        //
-        //     if(player.name == 'main player')
-        //     {
-        //         this.battlefield.moveAndCollide(player, this.direction);
-        //         this.direction = Direction.Stay;
-        //     }
-        // }
-
-        // Remove previous explosion smoke (TODO: Not needed some day)
-        // for(const explosion of this.battlefield.explosions)
-        // {
-        //     explosion.tick()
-        //
-        //     if(explosion.decayed)
-        //     {
-        //         this.battlefield.removeExplosion(explosion);
-        //     }
-        // }
-        //
-        // // Detonate bombs + hit any players in radius
-        // for(const bomb of this.battlefield.bombs)
-        // {
-        //     bomb.tick();
-        //
-        //     if(bomb.detonated)
-        //     {
-        //         this.battlefield.removeBomb(bomb)
-        //     }
-        // }
-        //
-        // // Drop airstrikes further
-        // for(const airstrike of this.battlefield.airstrikes)
-        // {
-        //     airstrike.tick();
-        //     if(airstrike.detonated)
-        //     {
-        //         this.battlefield.removeAirstrike(airstrike);
-        //     }
-        // }
-        //
-        // this.battlefield.spawnAirstrikes();
     }
 }
 

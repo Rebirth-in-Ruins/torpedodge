@@ -3,8 +3,7 @@ import Coordinates from './coordinates';
 import Bomb from './bomb';
 import Explosion from './explosion';
 import Airstrike from './airstrike';
-import { ServerAirstrike, ServerExplosion, ServerPlayer } from './main';
-import { Direction } from './direction';
+import { ServerAirstrike, ServerBomb, ServerExplosion, ServerPlayer } from './main';
 
 export default class Battlefield
 {
@@ -16,18 +15,11 @@ export default class Battlefield
     private MARGIN_LEFT: number = 10;
     private MARGIN_TOP: number = 10;
 
-    private map: Player[][];
-    private bombMap: Bomb[][];
-    private airstrikeMap: Airstrike[][];
-
-    // private _players: Map<Player, Coordinates>; 
-    private _bombs: Map<Bomb, Coordinates>;
-    private _explosions: Map<Explosion, Coordinates>;
-    // private _airstrikes: Map<Airstrike, Coordinates>;
-
     private scene: Phaser.Scene;
 
-    private explodeSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+    private _players: Map<number, Player> = new Map(); 
+    private _airstrikes: Map<number, Airstrike> = new Map(); 
+    private _bombs: Map<number, Bomb> = new Map(); 
 
     constructor(scene: Phaser.Scene, gameWidth: number, gameHeight: number, gridCount: number)
     {
@@ -45,36 +37,8 @@ export default class Battlefield
         g1.setOrigin(0,0);
 
         this.scene = scene;
-        this.map = [];
-        this.bombMap = [];
-        this.airstrikeMap = [];
-
-        this._bombs = new Map();
-        // this._players = new Map();
-        // this._explosions = new Map();
-        this._airstrikes = new Map();
-
-        const init = (arr) =>
-        {
-            for(let i = 0; i < 12; i++) // TODO: Pass in GRID_COUNT
-            { 
-                const p = [];
-                for(let i = 0; i < 12; i++)
-                {
-                    p.push(null);
-
-                }
-                arr.push(p);
-            }
-        }
-
-        init(this.map);
-        init(this.bombMap);
-        init(this.airstrikeMap);
     }
 
-    private _players: Map<number, Player> = new Map(); 
-    private _airstrikes: Map<number, Airstrike> = new Map(); 
 
     renderPlayer(obj: ServerPlayer)
     {
@@ -101,6 +65,16 @@ export default class Battlefield
         const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);
         airstrike.x = worldX;
         airstrike.y = worldY;
+    }
+
+    renderBomb(obj: ServerBomb)
+    {
+        const bomb = new Bomb(this.scene, obj.fuseCount);
+        this._bombs.set(obj.id, bomb);
+
+        const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);
+        bomb.x = worldX;
+        bomb.y = worldY;
     }
 
     renderExplosions(obj: ServerExplosion, sound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound, focusLost: boolean)
@@ -135,8 +109,15 @@ export default class Battlefield
             airstrike.destroy();
             this._airstrikes.delete(id);
         }
+    }
 
-        // this.explodeSound.play(); // TODO: Can this be less annoying?
+    clearBombs()
+    {
+        for(const [id, bomb] of this._bombs)
+        {
+            bomb.destroy();
+            this._bombs.delete(id);
+        }
     }
 
     removePlayer(id: number)

@@ -8,6 +8,7 @@ type GameStateResponse struct {
 	Players []Player `json:"players"`
 	Airstrikes []Airstrike `json:"airstrikes"`
 	Explosions []Explosion `json:"explosions"`
+	Bombs []Bomb `json:"bombs"`
 	Settings Settings `json:"settings"`
 }
 
@@ -33,10 +34,17 @@ func (g *State) JSON() []byte {
 		explosions = append(explosions, *explosion)
 	}
 
+	// Bombs
+	bombs := make([]Bomb, 0)
+	for _, bomb := range g.bombs {
+		bombs = append(bombs, *bomb)
+	}
+
 	response := GameStateResponse{
 		Players:    players,
 		Airstrikes: airstrikes,
 		Explosions: explosions,
+		Bombs:      bombs,
 		Settings:   g.Settings,
 	}
 

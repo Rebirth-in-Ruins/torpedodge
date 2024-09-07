@@ -22,6 +22,7 @@ type State struct {
 	players map[int]*Player
 	airstrikes map[int]*Airstrike
 	explosions map[int]*Explosion
+	bombs map[int]*Bomb
 
 	// input of every player
 	inputs map[int]Input
@@ -33,6 +34,7 @@ type State struct {
 	playerPositions [][]*Player
 	airstrikePositions [][]*Airstrike
 	explosionPositions [][]*Explosion
+	bombPositions [][]*Bomb
 
 	// game settings
 	Settings Settings
@@ -53,9 +55,13 @@ func (g *State) RunSimulation() {
 
 	// Apply inputs and check for collision
 	for _, input := range inputs {
-		if payload, ok := input.message.(protocol.Move); ok {
+		switch payload := input.message.(type) {
+		case protocol.Move:
 			g.movePlayer(input.id, Direction(payload.Direction))
+		case protocol.Bomb:
+			g.spawnBomb(input.id)
 		}
+
 	}
 
 	// Remove explosions from previous turn
@@ -70,7 +76,18 @@ func (g *State) RunSimulation() {
 		}
 	}
 
+	// Shorten the fuse / detonate bombs
+	for _, bomb := range g.bombs {
+		bomb.FuseCount -= 1
+		if bomb.Detonated() {
+			g.removeBomb(bomb)
+		}
+	}
+
 	// Find players that were hit by explosion
+
+	// Drop bombs the player placed
+
 
 	// Drop more airstrikes
 	g.spawnAirstrike()
@@ -108,18 +125,38 @@ func (g *State) spawnPlayer(id int, name string) {
 	slog.Info("player joined", slog.String("name", player.Name))
 }
 
+
+// spawnBomb starts a new count down to explosion at a player's position
+func (g *State) spawnBomb(id int) {
+	player, ok := g.players[id]
+	if !ok {
+		panic("could not find player") // TODO:
+	}
+
+	bomb := &Bomb{
+		ID:        g.newID(),
+		PlayerID: id,
+		X:         player.X,
+		Y:         player.Y,
+		FuseCount: g.Settings.BombFuseLength,
+	}
+
+	g.bombPositions[player.X][player.Y] = bomb
+	g.bombs[bomb.ID] = bomb
+
+	slog.Info("bomb dropped", slog.Int("id", bomb.ID), slog.String("player", player.Name))
+}
+
 // spawnAirstrike starts a new count down to explosion at a random tile
 func (g *State) spawnAirstrike() {
-	// Find free space
 	x, y := g.getFreeRandomTile()
 
 	airstrike := &Airstrike{
-		ID: g.counter,
+		ID: g.newID(),
 		X:         x,
 		Y:         y,
 		FuseCount: g.Settings.AirstrikeFuseLength,
 	}
-	g.counter++
 
 	g.airstrikePositions[x][y] = airstrike
 	g.airstrikes[airstrike.ID] = airstrike
@@ -131,11 +168,10 @@ func (g *State) spawnAirstrike() {
 // Helps with detecting if players were hit
 func (g *State) spawnExplosion(x int, y int) {
 	explosion := &Explosion{
-		ID: g.counter,
+		ID: g.newID(),
 		X:         x,
 		Y:         y,
 	}
-	g.counter++ // TODO: Should be a method
 
 	g.explosionPositions[x][y] = explosion
 	g.explosions[explosion.ID] = explosion
@@ -159,19 +195,27 @@ func (g *State) RemovePlayer(id int) {
 
 // removeAirstrike removes the entity and replaces it 
 // with explosions at the location
-func (g *State) removeAirstrike(as *Airstrike) {
-	airstrike, ok := g.airstrikes[as.ID]
-	if !ok {
-		panic("could not get player") // TODO:
-	}
-	delete(g.airstrikes, as.ID)
-
+func (g *State) removeAirstrike(airstrike *Airstrike) {
+	delete(g.airstrikes, airstrike.ID)
 	g.airstrikePositions[airstrike.X][airstrike.Y] = nil
 
 	// Spawn explosions at the place where the airstrike detonated
 	for i := 0; i < g.Settings.GridSize; i++ {
 		g.spawnExplosion(airstrike.X, i);
 		g.spawnExplosion(i, airstrike.Y);
+	}
+}
+
+// removeBomb removes the entity and replaces it 
+// with explosions at the location
+func (g *State) removeBomb(bomb *Bomb) {
+	delete(g.bombs, bomb.ID)
+	g.bombPositions[bomb.X][bomb.Y] = nil
+
+	// Spawn explosions at the place where the bomb detonated
+	for i := 0; i < g.Settings.GridSize; i++ {
+		g.spawnExplosion(bomb.X, i);
+		g.spawnExplosion(i, bomb.Y);
 	}
 }
 
@@ -208,6 +252,13 @@ func (g *State) movePlayer(id int, direction Direction) {
 	player.Rotation = direction
 
 	g.players[id] = player // TODO: Is this even necessary?
+}
+
+// newID hands out a new unique ID for spawning new entities
+func (g *State) newID() int {
+	result := g.counter
+	g.counter++
+	return result
 }
 
 // isOutOfBounds keeps players from moving out of the map.
@@ -256,12 +307,15 @@ func New(settings Settings) *State {
 		players:            make(map[int]*Player),
 		airstrikes:         make(map[int]*Airstrike),
 		explosions:         make(map[int]*Explosion),
+		bombs:              make(map[int]*Bomb),
 		inputs:             make(map[int]Input),
 
 		counter:            0,
 		playerPositions:    datastr.NewGrid[Player](settings.GridSize),
 		airstrikePositions: datastr.NewGrid[Airstrike](settings.GridSize),
 		explosionPositions: datastr.NewGrid[Explosion](settings.GridSize),
+		bombPositions: datastr.NewGrid[Bomb](settings.GridSize),
+
 		Settings:           settings,
 	}
 }
