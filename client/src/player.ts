@@ -1,4 +1,10 @@
-import { Direction } from './direction';
+const enum Direction {
+    Up = 1,
+    Down,
+    Left,
+    Right,
+    Stay,
+}
 
 export default class Player
 {

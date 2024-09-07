@@ -26,9 +26,12 @@ type Server struct {
 
 func New(state *game.State) (*Server, *http.ServeMux) {
 	server := &Server{
-		clients:    make(map[int]*Client),
-		state: state,
+		Mutex:   sync.Mutex{},
+		clients: make(map[int]*Client),
+		state:   state,
+		counter: atomic.Uint64{},
 	}
+	server.counter.Add(1) // 0 is reserved as ID for airstrikes
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/play", server.play)

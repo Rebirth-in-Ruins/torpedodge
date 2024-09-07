@@ -9,7 +9,13 @@ type GameStateResponse struct {
 	Airstrikes []Airstrike `json:"airstrikes"`
 	Explosions []Explosion `json:"explosions"`
 	Bombs []Bomb `json:"bombs"`
+	Leaderboard []Score `json:"leaderboard"`
 	Settings Settings `json:"settings"`
+}
+
+type Score struct {
+	Name string `json:"name"`
+	Score int `json:"score"`
 }
 
 func (g *State) JSON() []byte {
@@ -40,12 +46,19 @@ func (g *State) JSON() []byte {
 		bombs = append(bombs, *bomb)
 	}
 
+	// Leaderboard
+	leaderboard := make([]Score, 0)
+	for _, player := range g.players {
+		leaderboard = append(leaderboard, Score{Name: player.Name, Score: player.Score})
+	}
+
 	response := GameStateResponse{
-		Players:    players,
-		Airstrikes: airstrikes,
-		Explosions: explosions,
-		Bombs:      bombs,
-		Settings:   g.Settings,
+		Players:     players,
+		Airstrikes:  airstrikes,
+		Explosions:  explosions,
+		Bombs:       bombs,
+		Leaderboard: leaderboard,
+		Settings:    g.Settings,
 	}
 
 	b, err := json.Marshal(response)

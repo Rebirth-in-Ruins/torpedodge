@@ -1,3 +1,5 @@
+import { ServerEntry } from './main';
+
 export default class Leaderboard
 {
     private text: Phaser.GameObjects.Text;
@@ -9,7 +11,7 @@ export default class Leaderboard
         this.text = scene.add.text(gameWidth * 0.65, 50, 'LEADERBOARD', { font: '16px monospace', stroke: 'black', strokeThickness: 2});
     }
 
-    render(list: Array<{name: string, score: number}>)
+    render(list: Array<ServerEntry>)
     {
         let str = 'LEADERBOARD\n';
         

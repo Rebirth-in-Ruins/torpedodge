@@ -25,6 +25,12 @@ export class ServerPlayer
     bombRespawn: number
 }
 
+export class ServerEntry
+{
+    name: string
+    score: number
+}
+
 export class ServerBomb
 {
 	id: number
@@ -78,6 +84,7 @@ class GameState
     airstrikes: Array<ServerAirstrike>
     explosions: Array<ServerExplosion>
     bombs: Array<ServerBomb>
+    leaderboard: Array<ServerEntry>
     settings: ServerSettings
 }
 
@@ -149,28 +156,6 @@ class Game extends Phaser.Scene
 
         this.progressBar = new ProgressBar(this, width, height);
         this.leaderboard = new Leaderboard(this, width);
-        this.leaderboard.render([
-            {
-                name: 'Armadillo',
-                score: 12,
-            },
-            {
-                name: 'Connection Lost',
-                score: 1337,  
-            },
-            {
-                name: 'Aeroreido',
-                score: 4000,
-            },
-            {
-                name: 'Cpt Connection',
-                score: 120,
-            },
-            {
-                name: 'xd',
-                score: 120,
-            },
-        ]);
 
         this.anims.createFromAseprite('bomba');
 
@@ -249,7 +234,7 @@ class Game extends Phaser.Scene
     {
         // Render map when we received the settings (if the settings change the client is out of sync but cba).
         if(this.settings === undefined)
-    {
+        {
             this.settings = gamestate.settings;
             this.settings.turnDuration /= 1_000_000; // convert from nanoseconds
             this.battlefield = new Battlefield(this, this.width, this.height, this.settings.gridSize);
@@ -284,6 +269,9 @@ class Game extends Phaser.Scene
         {
             this.battlefield.renderExplosions(obj, this.explodeSound, this.focusLost);
         }
+
+        // Update leaderboard
+        this.leaderboard.render(gamestate.leaderboard);
 
         this.currentTurnDuration = 0;
     }

@@ -43,6 +43,11 @@ type State struct {
 	Disconnect chan int
 }
 
+const (
+	scoreGainTurn = 1
+	scoreGainHit = 5
+)
+
 func (g *State) RunSimulation() {
 	g.Lock()
 	defer g.Unlock()
@@ -73,8 +78,10 @@ func (g *State) RunSimulation() {
 		case protocol.Bomb:
 			g.spawnBomb(input.id)
 		}
-
 	}
+
+	// Drop more airstrikes
+	g.spawnAirstrike()
 
 	// Remove explosions from previous turn
 	clear(g.explosions)
@@ -98,15 +105,14 @@ func (g *State) RunSimulation() {
 
 	// Find players that were hit by explosion
 	for _, player := range g.players {
-		if g.explosionPositions[player.X][player.Y] != nil {
+		if explosion := g.explosionPositions[player.X][player.Y]; explosion != nil {
 			player.LoseHealth()
+			g.players[explosion.ID].Score += scoreGainHit
+			// TODO: Event for hit
 		}
 	}
 
-
-	// Drop more airstrikes
-	g.spawnAirstrike()
-
+	// TODO: create corpse entity to simplify this
 	// Disconnect players that were dead for long enough
 	for _, player := range g.players {
 		if player.deathTimer == 0 {
@@ -115,13 +121,17 @@ func (g *State) RunSimulation() {
 		}
 	}
 
+	// Grant everyone a point for surviving
+	for _, player := range g.players {
+		player.Score += 1
+	}
+
 	// Let new players join after everything is safe
 	for _, input := range inputs {
 		if payload, ok := input.message.(protocol.Join); ok {
 			g.spawnPlayer(input.id, payload.Name)
 		}
 	}
-	slog.Info("current inputs", slog.String("inputs", fmt.Sprintf("%v", inputs)))
 
 	// Prepare next round
 	clear(g.inputs)
@@ -137,6 +147,7 @@ func (g *State) spawnPlayer(id int, name string) {
 		X:           x,
 		Y:           y,
 		Rotation:    Left,
+		Score:       0,
 		Health:      g.Settings.StartHealth,
 		BombCount:   g.Settings.InventorySize,
 		BombRespawn: 0,
@@ -190,11 +201,12 @@ func (g *State) spawnAirstrike() {
 
 // spawnExplosion adds the entity at the location.
 // Helps with detecting if players were hit
-func (g *State) spawnExplosion(x int, y int) {
+func (g *State) spawnExplosion(x int, y int, playerID int) {
 	explosion := &Explosion{
-		ID: g.newID(),
-		X:         x,
-		Y:         y,
+		ID:       g.newID(),
+		X:        x,
+		Y:        y,
+		PlayerID: playerID,
 	}
 
 	g.explosionPositions[x][y] = explosion
@@ -224,6 +236,9 @@ func (g *State) sinkShip(player *Player) {
 	g.playerPositions[player.X][player.Y] = nil
 }
 
+// an explosion coming from airstrike gets this playerID
+const airstrikeID = 0
+
 // removeAirstrike removes the entity and replaces it 
 // with explosions at the location
 func (g *State) removeAirstrike(airstrike *Airstrike) {
@@ -232,8 +247,8 @@ func (g *State) removeAirstrike(airstrike *Airstrike) {
 
 	// Spawn explosions at the place where the airstrike detonated
 	for i := 0; i < g.Settings.GridSize; i++ {
-		g.spawnExplosion(airstrike.X, i);
-		g.spawnExplosion(i, airstrike.Y);
+		g.spawnExplosion(airstrike.X, i, airstrikeID);
+		g.spawnExplosion(i, airstrike.Y, airstrikeID);
 	}
 }
 
@@ -245,8 +260,8 @@ func (g *State) removeBomb(bomb *Bomb) {
 
 	// Spawn explosions at the place where the bomb detonated
 	for i := 0; i < g.Settings.GridSize; i++ {
-		g.spawnExplosion(bomb.X, i);
-		g.spawnExplosion(i, bomb.Y);
+		g.spawnExplosion(bomb.X, i, bomb.PlayerID);
+		g.spawnExplosion(i, bomb.Y, bomb.PlayerID);
 	}
 }
 

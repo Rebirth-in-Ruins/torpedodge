@@ -12,6 +12,9 @@ type Player struct {
 	Y int `json:"y"`
 	Rotation Direction `json:"rotation"`
 
+	// points gained
+	Score int `json:"score"`
+
 	// amount of lives
 	Health int `json:"health"`
 
