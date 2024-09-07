@@ -104,8 +104,7 @@ class Game extends Phaser.Scene
 
     private music: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
     private explodeSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
-    //
-    // private currentGameState: GameState;
+
     private settings: ServerSettings;
 
     preload ()
@@ -128,7 +127,7 @@ class Game extends Phaser.Scene
         this.load.image('sound_unmuted', 'assets/sound_unmuted.png');
 
         // Animations
-        this.load.aseprite('bomba', 'assets/bomba.png', 'assets/bomba.json');
+        this.load.aseprite('bomba', 'assets/explosion.png', 'assets/explosion.json');
 
         // Audio
         this.load.audio('explosion1', 'assets/explosion1.mp3');

@@ -3,10 +3,15 @@ export default class Airstrike
     private text: Phaser.GameObjects.Text;
     private image: Phaser.GameObjects.Image;
 
+    private SCALE_FACTOR: number = 0.8;
+
     // TODO: rename fuseCount (everywhere else) to fuseLength
-    constructor(scene: Phaser.Scene, fuseLength: number)
+    constructor(scene: Phaser.Scene, fuseLength: number, tileSize: number)
     {
         this.image = scene.add.image(-100, -100, 'small_shadow');
+
+        this.image.displayWidth = tileSize * this.SCALE_FACTOR;
+        this.image.displayHeight = tileSize * this.SCALE_FACTOR;
 
         switch(fuseLength)
         {

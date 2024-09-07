@@ -3,9 +3,14 @@ export default class Bomb
     private text: Phaser.GameObjects.Text;
     private image: Phaser.GameObjects.Image;
 
-    constructor(scene: Phaser.Scene, fuseCount: number)
+    private SCALE_FACTOR: number = 0.8;
+
+    constructor(scene: Phaser.Scene, fuseCount: number, tileSize: number)
     {
         this.image = scene.add.image(-100, -100, 'bomb');
+
+        this.image.displayWidth = tileSize * this.SCALE_FACTOR;
+        this.image.displayHeight = tileSize * this.SCALE_FACTOR;
     
         this.text = scene.add.text(-100, -100, '' + fuseCount)
             .setFontSize(32)
