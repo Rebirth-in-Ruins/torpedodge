@@ -8,18 +8,11 @@ export default class Player
     private arrow: Phaser.GameObjects.Image;
 
     private nameTag: Phaser.GameObjects.Text;
-    private _name: string;
 
     private SCALE_FACTOR: number = 0.8;
     private NAMETAG_OFFSET: number = -15;
-    private INVENTORY_SIZE: number = 2;
-    private BOMB_RESPAWN_TIME: number = 3;
 
-    private health: number = 3;
-    private bombs: number = this.INVENTORY_SIZE;
-    private bombRespawn: number = 0;
-
-    constructor(scene: Phaser.Scene, name: string, tileSize: number) 
+    constructor(scene: Phaser.Scene, name: string, health: number, bombs: number, tileSize: number) 
     {
         this.tileSize = tileSize;
 
@@ -31,21 +24,10 @@ export default class Player
         this.arrow = scene.add.image(-100, -100, 'arrow');
         this.arrow.alpha = 0; // TODO: Show arrow
 
-        this._name = name;
+        const fullName = '❤️'.repeat(health) + '/' + '💣'.repeat(bombs) + '\n' +  name;
 
-        this.nameTag = scene.add.text(10, 10, this.fullName(), { font: '10px monospace', strokeThickness: 2, stroke: '#000', align: 'center'});
+        this.nameTag = scene.add.text(10, 10, fullName, { font: '10px monospace', strokeThickness: 2, stroke: '#000', align: 'center'});
         this.nameTag.setOrigin(0.5, 1);
-    }
-    tick()
-    {
-        this.arrow.alpha = 0;
-
-        // Server: Manage cooldowns
-        if(this.bombRespawn > 0)
-            this.bombRespawn--;
-
-        if(this.bombRespawn == 0 && !this.fullAmmo)
-            this.gainBomb()
     }
 
     placeArrow(direction: Direction)
@@ -106,40 +88,11 @@ export default class Player
         }
     }
 
-    loseHealth()
-    {
-        if(this.health > 0)
-            this.health--;
-        this.nameTag.text = this.fullName();
-    }
-
-    useBomb()
-    {
-        if(this.bombs > 0)
-            this.bombs--;
-
-        this.bombRespawn = this.BOMB_RESPAWN_TIME;
-
-        this.nameTag.text = this.fullName();
-    }
-
-    gainBomb()
-    {
-        this.bombs++;
-        this.bombRespawn = this.BOMB_RESPAWN_TIME;
-        this.nameTag.text = this.fullName();
-    }
-
     destroy()
     {
         this.nameTag.destroy();
         this.ship.destroy();
         this.arrow.destroy();
-    }
-
-    private fullName(): string
-    {
-        return '❤️'.repeat(this.health) + '/' + '💣'.repeat(this.bombs) + '\n' +  this._name;
     }
 
     set x(value: number)
@@ -152,22 +105,6 @@ export default class Player
     {
         this.ship.y = value
         this.nameTag.y = value + this.NAMETAG_OFFSET;
-    }
-
-    // Used to identify the main player lol TODO
-    get name()
-    {
-        return this._name;
-    }
-
-    get noAmmo(): boolean
-    {
-        return this.bombs == 0;
-    }
-
-    get fullAmmo(): boolean
-    {
-        return this.bombs == this.INVENTORY_SIZE;
     }
 }
 

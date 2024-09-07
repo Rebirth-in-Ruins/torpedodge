@@ -1,5 +1,4 @@
 import Player from './player';
-import Coordinates from './coordinates';
 import Bomb from './bomb';
 import Explosion from './explosion';
 import Airstrike from './airstrike';
@@ -42,14 +41,8 @@ export default class Battlefield
 
     renderPlayer(obj: ServerPlayer)
     {
-        let player = this._players.get(obj.id);
-
-        // New player joined and needs to be added
-        if(player == undefined)
-        {
-            player = new Player(this.scene, obj.name, this._tileSize);
-            this._players.set(obj.id, player);
-        }
+        const player = new Player(this.scene, obj.name, obj.health, obj.bombCount, this._tileSize);
+        this._players.set(obj.id, player);
 
         const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);
         player.x = worldX;
@@ -89,8 +82,7 @@ export default class Battlefield
         explosion.y = worldY;
 
         this.scene.cameras.main.shake(200, 0.01);
-        sound.play();
-        // TODO: Explosion sound here
+        sound.play(); // TODO: Varying explosion sounds please
     }
 
     clearPlayers()
@@ -127,107 +119,11 @@ export default class Battlefield
         this._players.delete(id);
     }
 
-    spawnBomb(player: Player)
-    {
-        const { x, y } = this._players.get(player);
-
-        // Server: Only spawn bomb if no bomb already exists on that space
-        const exists = this.bombMap[x][y];
-        if(exists !== null || player.noAmmo)
-            return;
-
-        const bomb = new Bomb(this.scene);
-        this._bombs.set(bomb, new Coordinates(x, y));
-
-        this.bombMap[x][y] = bomb;
-
-        player.useBomb();
-
-        const [worldX, worldY] = this.gridToWorld(x, y);
-        bomb.x = worldX;
-        bomb.y = worldY;
-    }
-
-    removeBomb(bomb: Bomb)
-    {
-        const { x, y } = this._bombs.get(bomb);
-
-        this.bombMap[x][y] = null;
-        this._bombs.delete(bomb);
-        bomb.destroy();
-
-        for(let i = 0; i < this.gridCount; i++)
-        {
-            this.spawnExplosion(x, i);
-            this.spawnExplosion(i, y);
-        }
-    }
-
-    removeExplosion(explosion: Explosion)
-    {
-        explosion.destroy();
-        this._explosions.delete(explosion);
-    }
-
-    // moveAndCollide(player: Player, direction: Direction)
-    // {
-    //     const old = this._players.get(player);
-    //     const neww = old.move(direction);
-    //
-    //     // Collision
-    //     if(this.outOfBounds(neww) || this.map[neww.x][neww.y] != null)
-    //         return
-    //
-    //     // Update data structures
-    //     this.map[old.x][old.y] = null;
-    //     this.map[neww.x][neww.y] = player;
-    //     this._players.set(player, neww)
-    //
-    //     // Update image position
-    //     const [worldX, worldY] = this.gridToWorld(neww.x, neww.y);
-    //     player.x = worldX;
-    //     player.y = worldY;
-    // }
-
-    outOfBounds(coords: Coordinates): boolean
-    {
-        const horizontal = coords.x < 0 || this.gridCount <= coords.x;
-        const vertical = coords.y < 0 || this.gridCount <= coords.y;
-
-        return horizontal || vertical;
-    }
-
     gridToWorld(x: number, y: number)
     {
         const worldX = x * this._tileSize + this._tileSize*0.5 + this.MARGIN_LEFT;
         const worldY = y * this._tileSize + this._tileSize*0.5 + this.MARGIN_TOP;
 
         return [worldX, worldY];
-    }
-
-    get playerIds(): number[]
-    {
-        return Array.from(this._players).map(([id]) => id);
-    }
-
-    get bombs(): Bomb[]
-    {
-        return Array.from(this._bombs).map(([bomb]) => bomb);
-    }
-
-    get explosions(): Explosion[]
-    {
-        return Array.from(this._explosions).map(([explosion]) => explosion);
-    }
-
-    get airstrikes(): Airstrike[]
-    {
-        return Array.from(this._airstrikes).map(([airstrike]) => airstrike);
-    }
-    
-    // Expose this so other entities can scale themselves based on tile size.
-    get tileSize()
-    {
-        return this._tileSize;
     }
 }

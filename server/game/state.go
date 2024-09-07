@@ -52,7 +52,9 @@ func (g *State) RunSimulation() {
 		return a.time.Compare(b.time)
 	})
 
-	// Apply inputs and check for collision
+	// Apply inputs:
+	// - Move players (and check collision)
+	// - Drop bombs the player placed
 	for _, input := range inputs {
 		switch payload := input.message.(type) {
 		case protocol.Move:
@@ -84,9 +86,12 @@ func (g *State) RunSimulation() {
 	}
 
 	// Find players that were hit by explosion
-
-	// Drop bombs the player placed
-
+	for _, player := range g.players {
+		if g.explosionPositions[player.X][player.Y] != nil {
+			player.LoseHealth()
+			fmt.Println("lost health!")
+		}
+	}
 
 	// Drop more airstrikes
 	g.spawnAirstrike()
@@ -295,6 +300,10 @@ type Input struct {
 	id int
 	message protocol.Message
 	time time.Time
+}
+
+func (i Input) String() string {
+	return fmt.Sprintf("%v:{%s}", i.id ,i.message)
 }
 
 // TODO: Some messages should be evaluated immediately and the state should be sent to spectators (like join, direction known)

@@ -22,6 +22,14 @@ type Player struct {
 	BombRespawn int `json:"bombRespawn"`
 }
 
+func (p *Player) LoseHealth() {
+	if p.Health == 0 {
+		return
+	}
+
+	p.Health--
+}
+
 type Direction string
 
 const (
