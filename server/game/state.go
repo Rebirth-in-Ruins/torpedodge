@@ -45,7 +45,6 @@ func (g *State) RunSimulation() {
 	defer g.Unlock()
 
 	slog.Info("-- Simulation Start --")
-	defer slog.Info("-- Simulation End --")
 
 	// Sort inputs by time we received them
 	inputs := slices.Collect(maps.Values(g.inputs))
@@ -240,8 +239,15 @@ func (g *State) movePlayer(id int, direction Direction) {
 		newY += 1
 	}
 
-	// TODO: Collision with others
+
+	// Don't leave map
 	if g.isOutOfBounds(newX, newY) {
+		return
+	}
+
+	// Don't collide with other players
+	neighbour := g.playerPositions[newX][newY]
+	if neighbour != nil {
 		return
 	}
 
@@ -251,7 +257,7 @@ func (g *State) movePlayer(id int, direction Direction) {
 	player.Y = newY
 	player.Rotation = direction
 
-	g.players[id] = player // TODO: Is this even necessary?
+	// g.players[id] = player // TODO: Is this even necessary?
 }
 
 // newID hands out a new unique ID for spawning new entities
