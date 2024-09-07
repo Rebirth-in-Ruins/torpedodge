@@ -24,6 +24,9 @@ type (
 	// TODO: this should be immediate and not locked to the next turn :/
 	Bomb struct{}
 
+	// client wants to leave
+	Quit struct{}
+
 	// client's message was not understood
 	Unknown struct{
 		Raw string
@@ -48,9 +51,12 @@ func (u Unknown) String() string {
 }
 
 func Parse(str string) Message {
+	// TODO: stop with the prefix
 	switch {
 	case strings.HasPrefix(str, "JOIN "):
 		return Join{Name: str[5:]}
+	case strings.HasPrefix(str, "QUIT"):
+		return Quit{}
 	case strings.HasPrefix(str, "LEFT"):
 		return Move{Direction: "LEFT"}
 	case strings.HasPrefix(str, "RIGHT"):

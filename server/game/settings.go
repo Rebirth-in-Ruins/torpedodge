@@ -21,7 +21,10 @@ type Settings struct {
 	// how many turns until the airstrike detonates
 	AirstrikeFuseLength int `json:"airstrikeFuseLength"`
 
-	// how many tunrs until a player's dropped bomb detonates
+	// how many turns until a player's dropped bomb detonates
 	BombFuseLength int `json:"bombFuseLength"`
+
+	// how many turns the corpose of a ship remains on the map
+	DeathTime int `json:"deathTime"`
 }
 

@@ -52,6 +52,9 @@ func (c *Client) readMessages() {
 		if err != nil && strings.Contains(err.Error(), "failed to get reader") {
 			slog.Error("could not read message", slog.String("error", err.Error()))
 			return
+		} else if err != nil && strings.Contains(err.Error(), "use of closed network connection") {
+			slog.Error("could not read message", slog.String("error", err.Error()))
+			return
 		} else if err != nil {
 			panic(err)
 		}
@@ -113,3 +116,7 @@ func (c *Client) writeMessages() {
 	}
 }
 
+func (c *Client) disconnect() {
+	c.conn.Close(websocket.StatusNormalClosure, "You died!")
+	slog.Info("disonnecting client due to game", slog.String("name", c.name))
+}

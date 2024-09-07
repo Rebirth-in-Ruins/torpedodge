@@ -38,6 +38,9 @@ type State struct {
 
 	// game settings
 	Settings Settings
+
+	// game tells which client to disconnect (because of death)
+	Disconnect chan int
 }
 
 func (g *State) RunSimulation() {
@@ -56,6 +59,14 @@ func (g *State) RunSimulation() {
 	// - Move players (and check collision)
 	// - Drop bombs the player placed
 	for _, input := range inputs {
+
+		// Ignore dead players
+		player, joined := g.players[input.id]
+		if joined && player.IsDead() {
+			player.deathTimer--
+			continue
+		}
+
 		switch payload := input.message.(type) {
 		case protocol.Move:
 			g.movePlayer(input.id, Direction(payload.Direction))
@@ -89,12 +100,20 @@ func (g *State) RunSimulation() {
 	for _, player := range g.players {
 		if g.explosionPositions[player.X][player.Y] != nil {
 			player.LoseHealth()
-			fmt.Println("lost health!")
 		}
 	}
 
+
 	// Drop more airstrikes
 	g.spawnAirstrike()
+
+	// Disconnect players that were dead for long enough
+	for _, player := range g.players {
+		if player.deathTimer == 0 {
+			g.sinkShip(player)
+			g.Disconnect <- player.ID
+		}
+	}
 
 	// Let new players join after everything is safe
 	for _, input := range inputs {
@@ -113,7 +132,7 @@ func (g *State) spawnPlayer(id int, name string) {
 	x, y := g.getFreeRandomTile()
 
 	player := &Player{
-		ID: id,
+		ID:          id,
 		Name:        name,
 		X:           x,
 		Y:           y,
@@ -121,6 +140,7 @@ func (g *State) spawnPlayer(id int, name string) {
 		Health:      g.Settings.StartHealth,
 		BombCount:   g.Settings.InventorySize,
 		BombRespawn: 0,
+		deathTimer:  g.Settings.DeathTime,
 	}
 
 	g.playerPositions[x][y] = player
@@ -184,16 +204,23 @@ func (g *State) spawnExplosion(x int, y int) {
 }
 
 // A websocket client will report that a player has left because their connection is gone.
+// TODO: Can this be made private?
 func (g *State) RemovePlayer(id int) {
 	g.Lock()
 	defer g.Unlock()
 
 	player, ok := g.players[id]
 	if !ok {
-		panic("could not get player") // TODO:
+		return // TODO: This means it was already deleted ig
 	}
 	delete(g.players, id)
 
+	g.playerPositions[player.X][player.Y] = nil
+}
+
+// same as above but without locking TODO
+func (g *State) sinkShip(player *Player) {
+	delete(g.players, player.ID)
 	g.playerPositions[player.X][player.Y] = nil
 }
 
@@ -324,14 +351,16 @@ func New(settings Settings) *State {
 		explosions:         make(map[int]*Explosion),
 		bombs:              make(map[int]*Bomb),
 		inputs:             make(map[int]Input),
-
 		counter:            0,
+
 		playerPositions:    datastr.NewGrid[Player](settings.GridSize),
 		airstrikePositions: datastr.NewGrid[Airstrike](settings.GridSize),
 		explosionPositions: datastr.NewGrid[Explosion](settings.GridSize),
-		bombPositions: datastr.NewGrid[Bomb](settings.GridSize),
+		bombPositions:      datastr.NewGrid[Bomb](settings.GridSize),
 
 		Settings:           settings,
+
+		Disconnect:         make(chan int, 10),
 	}
 }
 

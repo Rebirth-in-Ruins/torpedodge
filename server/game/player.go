@@ -15,11 +15,14 @@ type Player struct {
 	// amount of lives
 	Health int `json:"health"`
 
-	// allowed  
+	// bombs in inventory that can be dropped
 	BombCount int `json:"bombCount"`
 
 	// amount of turns until bomb is available
 	BombRespawn int `json:"bombRespawn"`
+
+	// remaining turns until the player gets disconnected
+	deathTimer int
 }
 
 func (p *Player) LoseHealth() {
@@ -29,6 +32,12 @@ func (p *Player) LoseHealth() {
 
 	p.Health--
 }
+
+func (p *Player) IsDead() bool {
+	return p.Health <= 0
+}
+
+
 
 type Direction string
 

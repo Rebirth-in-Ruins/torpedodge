@@ -111,8 +111,9 @@ class Game extends Phaser.Scene
     preload ()
     {
         // Images
-        this.load.image('arrow', 'assets/arrow.png');
         this.load.image('ship', 'assets/ship.png');
+        this.load.image('ship_dead', 'assets/ship_dead.png');
+        this.load.image('arrow', 'assets/arrow.png');
         this.load.image('bomb', 'assets/bomb.png');
         this.load.image('explosion', 'assets/explosion.png');
 

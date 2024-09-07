@@ -65,6 +65,9 @@ func (s *Server) StartGame() {
 				}
 			}
 			s.Unlock()
+		case id := <-s.state.Disconnect:
+			client := s.clients[id]
+			client.disconnect()
 		}
 	}
 }
