@@ -27,11 +27,6 @@ export default class Player
         this.ship.displayWidth = this.tileSize * this.SCALE_FACTOR;
         this.ship.displayHeight = this.tileSize * this.SCALE_FACTOR;
 
-        if(health == 0)
-        {
-            this.ship.setTexture('ship_dead');
-        }
-
         this.arrow = scene.add.image(-100, -100, 'arrow');
         this.arrow.alpha = 0; // TODO: Show arrow
 

@@ -25,6 +25,19 @@ export class ServerPlayer
     bombRespawn: number
 }
 
+export class ServerCorpse
+{
+    id: number
+
+    // name tag
+    name: string
+
+    // coordinates
+    x: number
+    y: number
+    rotation: string
+}
+
 export class ServerEntry
 {
     name: string
@@ -84,6 +97,7 @@ class GameState
     airstrikes: Array<ServerAirstrike>
     explosions: Array<ServerExplosion>
     bombs: Array<ServerBomb>
+    corpses: Array<ServerCorpse>
     leaderboard: Array<ServerEntry>
     settings: ServerSettings
 }
@@ -268,6 +282,13 @@ class Game extends Phaser.Scene
         for(const obj of gamestate.explosions)
         {
             this.battlefield.renderExplosions(obj, this.explodeSound, this.focusLost);
+        }
+
+        // Render corpses
+        this.battlefield.clearCorpses();
+        for(const obj of gamestate.corpses)
+        {
+            this.battlefield.renderCorpse(obj);
         }
 
         // Update leaderboard

@@ -23,6 +23,7 @@ type State struct {
 	airstrikes map[int]*Airstrike
 	explosions map[int]*Explosion
 	bombs map[int]*Bomb
+	corpses map[int]*Corpse
 
 	// input of every player
 	inputs map[int]Input
@@ -35,6 +36,7 @@ type State struct {
 	airstrikePositions [][]*Airstrike
 	explosionPositions [][]*Explosion
 	bombPositions [][]*Bomb
+	corpsePositions [][]*Corpse
 
 	// game settings
 	Settings Settings
@@ -66,9 +68,8 @@ func (g *State) RunSimulation() {
 	for _, input := range inputs {
 
 		// Ignore dead players
-		player, joined := g.players[input.id]
-		if joined && player.IsDead() {
-			player.deathTimer--
+		player, found := g.players[input.id]
+		if !found || player.IsDead() {
 			continue
 		}
 
@@ -86,6 +87,14 @@ func (g *State) RunSimulation() {
 	// Remove explosions from previous turn
 	clear(g.explosions)
 	g.explosionPositions = datastr.NewGrid[Explosion](g.Settings.GridSize)
+
+	// Decay corpses some more
+	for _, corpse := range g.corpses {
+		corpse.DeathTimer -= 1
+		if corpse.IsDead() {
+			g.removeCorpse(corpse)
+		}
+	}
 
 	// Shorten the fuse / detonate airstrikes
 	for _, airstrike := range g.airstrikes {
@@ -107,7 +116,11 @@ func (g *State) RunSimulation() {
 	for _, player := range g.players {
 		if explosion := g.explosionPositions[player.X][player.Y]; explosion != nil {
 			player.LoseHealth()
-			g.players[explosion.ID].Score += scoreGainHit
+
+			// Grant score to player if hit by them
+			if explosion.PlayerID != airstrikeID {
+				g.players[explosion.PlayerID].Score += scoreGainHit
+			}
 			// TODO: Event for hit
 		}
 	}
@@ -115,8 +128,9 @@ func (g *State) RunSimulation() {
 	// TODO: create corpse entity to simplify this
 	// Disconnect players that were dead for long enough
 	for _, player := range g.players {
-		if player.deathTimer == 0 {
+		if player.IsDead() {
 			g.sinkShip(player)
+			g.spawnCorpse(player)
 			g.Disconnect <- player.ID
 		}
 	}
@@ -215,6 +229,23 @@ func (g *State) spawnExplosion(x int, y int, playerID int) {
 	slog.Debug("explosion spawned", slog.Int("x", explosion.X), slog.Int("y", explosion.Y))
 }
 
+
+func (g *State) spawnCorpse(player *Player) {
+	corpse := &Corpse{
+		ID:         g.newID(),
+		Name:       player.Name,
+		X:          player.X,
+		Y:          player.Y,
+		Rotation:   player.Rotation,
+		DeathTimer: g.Settings.DeathTime,
+	}
+
+	g.corpsePositions[corpse.X][corpse.Y] = corpse
+	g.corpses[corpse.ID] = corpse
+
+	slog.Debug("corpse spawned", slog.Int("x", corpse.X), slog.Int("y", corpse.Y))
+}
+
 // A websocket client will report that a player has left because their connection is gone.
 // TODO: Can this be made private?
 func (g *State) RemovePlayer(id int) {
@@ -265,6 +296,12 @@ func (g *State) removeBomb(bomb *Bomb) {
 	}
 }
 
+// removeCorpse removes any remains of the player now
+func (g *State) removeCorpse(corpse *Corpse) {
+	delete(g.corpses, corpse.ID)
+	g.corpsePositions[corpse.X][corpse.Y] = nil
+}
+
 // movePlayer changes the position
 func (g *State) movePlayer(id int, direction Direction) {
 	player, ok := g.players[id]
@@ -303,8 +340,6 @@ func (g *State) movePlayer(id int, direction Direction) {
 	player.X = newX
 	player.Y = newY
 	player.Rotation = direction
-
-	// g.players[id] = player // TODO: Is this even necessary?
 }
 
 // newID hands out a new unique ID for spawning new entities
@@ -365,16 +400,15 @@ func New(settings Settings) *State {
 		airstrikes:         make(map[int]*Airstrike),
 		explosions:         make(map[int]*Explosion),
 		bombs:              make(map[int]*Bomb),
+		corpses:             make(map[int]*Corpse),
 		inputs:             make(map[int]Input),
 		counter:            0,
-
 		playerPositions:    datastr.NewGrid[Player](settings.GridSize),
 		airstrikePositions: datastr.NewGrid[Airstrike](settings.GridSize),
 		explosionPositions: datastr.NewGrid[Explosion](settings.GridSize),
 		bombPositions:      datastr.NewGrid[Bomb](settings.GridSize),
-
+		corpsePositions:    datastr.NewGrid[Corpse](settings.GridSize),
 		Settings:           settings,
-
 		Disconnect:         make(chan int, 10),
 	}
 }

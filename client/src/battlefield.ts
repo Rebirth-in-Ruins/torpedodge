@@ -2,7 +2,8 @@ import Player from './player';
 import Bomb from './bomb';
 import Explosion from './explosion';
 import Airstrike from './airstrike';
-import { ServerAirstrike, ServerBomb, ServerExplosion, ServerPlayer } from './main';
+import { ServerAirstrike, ServerBomb, ServerCorpse, ServerExplosion, ServerPlayer } from './main';
+import Corpse from './corpse';
 
 export default class Battlefield
 {
@@ -19,6 +20,7 @@ export default class Battlefield
     private players: Map<number, Player> = new Map(); 
     private airstrikes: Map<number, Airstrike> = new Map(); 
     private bombs: Map<number, Bomb> = new Map(); 
+    private corpses: Map<number, Corpse> = new Map(); 
 
     constructor(scene: Phaser.Scene, gameWidth: number, gameHeight: number, gridCount: number)
     {
@@ -85,6 +87,18 @@ export default class Battlefield
         sound.play(); // TODO: Varying explosion sounds please
     }
 
+    renderCorpse(obj: ServerCorpse)
+    {
+        const corpse = new Corpse(this.scene, obj.name, this.tileSize);
+        this.corpses.set(obj.id, corpse)
+
+        const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);
+        corpse.x = worldX;
+        corpse.y = worldY;
+
+        // TODO: Play some death sound?
+    }
+
     clearPlayers()
     {
         for(const [id, player] of this.players)
@@ -111,6 +125,16 @@ export default class Battlefield
             this.bombs.delete(id);
         }
     }
+
+    clearCorpses()
+    {
+        for(const [id, corpse] of this.corpses)
+        {
+            corpse.destroy();
+            this.corpses.delete(id);
+        }
+    }
+
 
     removePlayer(id: number)
     {

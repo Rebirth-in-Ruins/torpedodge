@@ -40,8 +40,6 @@ func (p *Player) IsDead() bool {
 	return p.Health <= 0
 }
 
-
-
 type Direction string
 
 const (

@@ -6,6 +6,7 @@ import (
 
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
+	"github.com/rebirth-in-ruins/torpedodge/server/game"
 )
 
 const (
@@ -25,5 +26,11 @@ func main() {
 		panic(err)
 	}
 
-	select {}
+	for {
+        var state game.GameStateResponse
+        err = wsjson.Read(context.Background(), conn, &state)
+        if err != nil {
+            panic(err)
+        }
+	}
 }

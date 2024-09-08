@@ -9,6 +9,7 @@ type GameStateResponse struct {
 	Airstrikes []Airstrike `json:"airstrikes"`
 	Explosions []Explosion `json:"explosions"`
 	Bombs []Bomb `json:"bombs"`
+	Corpses []Corpse `json:"corpses"`
 	Leaderboard []Score `json:"leaderboard"`
 	Settings Settings `json:"settings"`
 }
@@ -46,6 +47,12 @@ func (g *State) JSON() []byte {
 		bombs = append(bombs, *bomb)
 	}
 
+	// Corpses
+	corpses := make([]Corpse, 0)
+	for _, corpse := range g.corpses {
+		corpses = append(corpses, *corpse)
+	}
+
 	// Leaderboard
 	leaderboard := make([]Score, 0)
 	for _, player := range g.players {
@@ -57,6 +64,7 @@ func (g *State) JSON() []byte {
 		Airstrikes:  airstrikes,
 		Explosions:  explosions,
 		Bombs:       bombs,
+		Corpses:     corpses,
 		Leaderboard: leaderboard,
 		Settings:    g.Settings,
 	}
