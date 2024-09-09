@@ -9,7 +9,6 @@ import (
 
 // HTTP endpoint to start watching the game.
 func (s *Server) play(w http.ResponseWriter, r *http.Request) {
-	// TODO: only localhost and torpedodge.resamvi.io
 	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		InsecureSkipVerify:   true,
 	})

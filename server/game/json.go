@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"log/slog"
 )
 
 // GameStateResponse lists all entities and their position
@@ -87,7 +88,8 @@ func (g *State) JSON() []byte {
 
 	b, err := json.Marshal(response)
 	if err != nil {
-		panic(err) // TODO: Should not happen
+		slog.Info("failed marshalling", slog.String("error", err.Error()))
+		return []byte{}
 	}
 
 	return b

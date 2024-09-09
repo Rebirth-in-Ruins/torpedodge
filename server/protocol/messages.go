@@ -19,7 +19,7 @@ type (
 		Direction string
 	}
 
-	// client wants to move in direction
+	// client wants to drop a bomb
 	// TODO: Maybe add field Direction as well
 	// TODO: this should be immediate and not locked to the next turn :/
 	Bomb struct{}
@@ -46,26 +46,31 @@ func (b Bomb) String() string {
 	return fmt.Sprintf("BOMB")
 }
 
+func (b Quit) String() string {
+	return fmt.Sprintf("QUIT")
+}
+
 func (u Unknown) String() string {
 	return fmt.Sprintf("UNKNOWN(%v)", u.Raw)
 }
 
 func Parse(str string) Message {
-	// TODO: stop with the prefix
-	switch {
-	case strings.HasPrefix(str, "JOIN "):
+	if strings.HasPrefix(str, "JOIN ") {
 		return Join{Name: str[5:]}
-	case strings.HasPrefix(str, "QUIT"):
+	}
+
+	switch str {
+	case "QUIT":
 		return Quit{}
-	case strings.HasPrefix(str, "LEFT"):
+	case "LEFT":
 		return Move{Direction: "LEFT"}
-	case strings.HasPrefix(str, "RIGHT"):
+	case "RIGHT":
 		return Move{Direction: "RIGHT"}
-	case strings.HasPrefix(str, "UP"):
+	case "UP":
 		return Move{Direction: "UP"}
-	case strings.HasPrefix(str, "DOWN"):
+	case "DOWN":
 		return Move{Direction: "DOWN"}
-	case strings.HasPrefix(str, "BOMB"):
+	case "BOMB":
 		return Bomb{}
 	default:
 		return Unknown{Raw: str}

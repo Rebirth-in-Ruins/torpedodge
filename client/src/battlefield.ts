@@ -2,7 +2,7 @@ import Player from './player';
 import Bomb from './bomb';
 import Explosion from './explosion';
 import Airstrike from './airstrike';
-import { ServerAirstrike, ServerBomb, ServerCorpse, ServerExplosion, ServerPlayer } from './main';
+import { ServerAirstrike, ServerBomb, ServerCorpse, ServerExplosion, ServerPlayer } from './server';
 import Corpse from './corpse';
 
 export default class Battlefield
@@ -96,7 +96,8 @@ export default class Battlefield
         corpse.x = worldX;
         corpse.y = worldY;
 
-        // TODO: Play some death sound?
+        // TODO: Play death sound on event
+        // sound.play();
     }
 
     clearPlayers()

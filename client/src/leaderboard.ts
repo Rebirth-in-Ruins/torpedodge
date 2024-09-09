@@ -1,4 +1,4 @@
-import { ServerEntry } from './main';
+import { ServerEntry } from './server';
 
 export default class Leaderboard
 {

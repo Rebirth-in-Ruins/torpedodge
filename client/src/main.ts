@@ -2,105 +2,8 @@ import Phaser from 'phaser';
 import ProgressBar from './progressbar';
 import Battlefield from './battlefield';
 import Leaderboard from './leaderboard';
-
-// TODO: Better name, better location
-export class ServerPlayer
-{
-    id: number
-
-    name: string
-
-    // coordinates
-    x: number
-    y: number
-    rotation: string
-
-    // amount of lives
-    health: number
-
-    // allowed  
-    bombCount: number
-
-    // amount of turns until bomb is available
-    bombRespawn: number
-}
-
-export class ServerCorpse
-{
-    id: number
-
-    // name tag
-    name: string
-
-    // coordinates
-    x: number
-    y: number
-    rotation: string
-}
-
-export class ServerEntry
-{
-    name: string
-    score: number
-}
-
-export class ServerBomb
-{
-	id: number
-	playerId: number
-	x: number
-	y: number
-	fuseCount: number
-}
-
-export class ServerAirstrike
-{
-    id: number
-
-    // coordinates
-    x: number
-    y: number
-
-    // amount of turns until it explodes
-    fuseCount: number
-}
-
-export class ServerExplosion
-{
-    id: number
-
-    x: number
-    y: number
-}
-
-class ServerSettings
-{
-    // time until inputs are evaluated and game state is updated
-    turnDuration: number
-
-    // size of the map
-    gridSize: number
-
-    // how many bombs can be stored at once
-    inventorySize: number
-
-    // how many turns it takes before a player can get another bomb
-    bombRespawnTime: number
-
-    // how many lives the player has 
-    startHealth: number
-}
-
-class GameState
-{
-    players: Array<ServerPlayer>
-    airstrikes: Array<ServerAirstrike>
-    explosions: Array<ServerExplosion>
-    bombs: Array<ServerBomb>
-    corpses: Array<ServerCorpse>
-    leaderboard: Array<ServerEntry>
-    settings: ServerSettings
-}
+import Button from './button';
+import { GameState, ServerSettings } from './server';
 
 class Game extends Phaser.Scene
 {
@@ -116,15 +19,13 @@ class Game extends Phaser.Scene
     private width: number;
     private height: number;
 
-    private musicMuted: boolean = true;
-    private soundMuted: boolean = true;
-
     // This prevents a bug where switching back to the game would draw a lot of explosions
     // Switching away from the tab pauses the game but explosion animations still get queued => too much boom boom.
     private focusLost: boolean = false;
 
     private music: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
     private explodeSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+    private deathSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
 
     private settings: ServerSettings;
 
@@ -151,8 +52,8 @@ class Game extends Phaser.Scene
         this.load.aseprite('bomba', 'assets/explosion.png', 'assets/explosion.json');
 
         // Audio
-        this.load.audio('explosion1', 'assets/explosion1.mp3');
-        this.load.audio('explosion2', 'assets/explosion2.mp3');
+        this.load.audio('death', 'assets/death.mp3');
+        this.load.audio('explosion', 'assets/explosion.mp3');
         this.load.audio('background_music', 'assets/background_music.mp3');
     }
 
@@ -176,12 +77,16 @@ class Game extends Phaser.Scene
         this.music = this.sound.add('background_music');
         this.music.setLoop(true);
 
-        this.explodeSound = this.sound.add('explosion1'); // TODO: decide on sound
-        this.explodeSound.setVolume(0.3); // TODO: reduce volume
+        this.explodeSound = this.sound.add('explosion');
         this.explodeSound.setMute(true);
 
-        // TODO: Environment variable for this
-        const conn = new WebSocket('ws://localhost:8080' + '/play?spectate=true');
+        this.deathSound = this.sound.add('death');
+        this.deathSound.setMute(true);
+
+        // @ts-expect-error vite bollocks
+        const gameserverUrl = import.meta.env.VITE_GAMESERVER_URL;
+
+        const conn = new WebSocket(gameserverUrl + '?spectate=true');
         conn.onclose = () =>
         {
             const graphics = this.add.graphics({ fillStyle: { color: 0x000000, alpha: 0.3 } });
@@ -195,43 +100,18 @@ class Game extends Phaser.Scene
             this.render(obj);
         };
 
-        // TODO: Put into classes
-        const button = this.add.image(width - 40, 30, 'music_muted');
-        button.setScale(2, 2);
-        button.setInteractive({ useHandCursor: true });
-        button.on('pointerdown', () =>
+        new Button(this, width - 40, 30, 'music_muted', 'music_unmuted', (active: boolean) =>
         {
-            this.musicMuted = !this.musicMuted;
-            if(this.musicMuted)
-            {
-                button.setTexture('music_muted');
-                this.music.stop();
-            }
-            else 
-            {
-                button.setTexture('music_unmuted');
+            if(active)
                 this.music.play();
-            }
-
-        })
-
-        const button2 = this.add.image(width - 90, 30, 'sound_muted');
-        button2.setScale(2, 2);
-        button2.setInteractive({ useHandCursor: true });
-        button2.on('pointerdown', () =>
-        {
-            this.soundMuted = !this.soundMuted;
-            if(this.soundMuted)
-            {
-                button2.setTexture('sound_muted');
-                this.explodeSound.setMute(true);
-            }
             else 
-            {
-                button2.setTexture('sound_unmuted');
-                this.explodeSound.setMute(false);
-            }
+                this.music.stop();
+        });
 
+        new Button(this, width - 90, 30, 'sound_muted', 'sound_unmuted', (active: boolean) =>
+        {
+            this.explodeSound.setMute(!active);
+            this.deathSound.setMute(!active);
         });
 
         this.game.events.on('blur', () =>
@@ -246,6 +126,8 @@ class Game extends Phaser.Scene
 
     render(gamestate: GameState)
     {
+        console.log(gamestate);
+
         // Render map when we received the settings (if the settings change the client is out of sync but cba).
         if(this.settings === undefined)
         {
@@ -254,8 +136,6 @@ class Game extends Phaser.Scene
             this.battlefield = new Battlefield(this, this.width, this.height, this.settings.gridSize);
             this.statusText.text = '';
         }
-
-        console.log(gamestate);
 
         // Render players
         this.battlefield.clearPlayers();
@@ -288,7 +168,7 @@ class Game extends Phaser.Scene
         this.battlefield.clearCorpses();
         for(const obj of gamestate.corpses)
         {
-            this.battlefield.renderCorpse(obj);
+            this.battlefield.renderCorpse(obj, this.deathSound);
         }
 
         // Update leaderboard
