@@ -3,21 +3,33 @@ kind: Ingress
 metadata:
   name: nginx
   namespace: default
+  traefik.ingress.kubernetes.io/router.middlewares: default-redirecthttp@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
   - host: torpedodge.resamvi.io
     http:
       paths:
-      - backend:
+      - path: /
+        pathType: Prefix
+        backend:
           service:
-            name: ingress
+            name: torpedodge-client-path
+            port:
+              number: 8081
+        
+  - host: gameserver.resamvi.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gameserver-path
             port:
               number: 8080
-        path: /
-        pathType: Prefix
   tls:
     - secretName: torpedodge-tls
       hosts:
         - torpedodge.resamvi.io
-
+        - gameserver.resamvi.io

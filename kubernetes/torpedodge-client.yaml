@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: torpedodge-client
+  name: torpedodge-client
+spec:
+  ports:
+  - port: 8081
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: torpedodge-client
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: torpedodge-client
+  name: torpedodge-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: torpedodge-client
+  template:
+    metadata:
+      labels:
+        app: torpedodge-client
+    spec:
+      containers:
+      - image: ghcr.io/rebirth-in-ruins/torpedodge-client:latest
+        name: torpedodge-client
+        ports:
+        - containerPort: 80
