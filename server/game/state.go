@@ -54,8 +54,6 @@ func (g *State) RunSimulation() {
 	g.Lock()
 	defer g.Unlock()
 
-	slog.Info("-- Simulation Start --")
-
 	// Sort inputs by time we received them
 	inputs := slices.Collect(maps.Values(g.inputs))
 	slices.SortFunc(inputs, func(a Input, b Input) int {

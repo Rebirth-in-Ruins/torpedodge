@@ -6,3 +6,5 @@ require (
 	github.com/coder/websocket v1.8.12
 	golang.org/x/exp v0.0.0-20240904232852-e7e105dedf7e
 )
+
+require github.com/lmittmann/tint v1.0.5 // indirect

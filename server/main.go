@@ -3,7 +3,10 @@ package main
 import (
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
+
+	"github.com/lmittmann/tint"
 
 	"github.com/rebirth-in-ruins/torpedodge/server/game"
 	"github.com/rebirth-in-ruins/torpedodge/server/websockets"
@@ -24,6 +27,13 @@ func main() {
 	server, mux := websockets.New(gameState)
 	go server.StartGame()
 
+	slog.SetDefault(slog.New(
+		tint.NewHandler(os.Stderr, &tint.Options{
+			Level:      slog.LevelInfo,
+			TimeFormat: time.Kitchen,
+		}),
+	))
+  
 	slog.Info("Started server")
 
 	err := http.ListenAndServe(":8080", mux)

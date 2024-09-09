@@ -4,16 +4,32 @@ import (
 	"encoding/json"
 )
 
+// GameStateResponse lists all entities and their position
+// on the battlefield.
 type GameStateResponse struct {
+	// a list of players on the field
 	Players []Player `json:"players"`
+
+	// a list of inbound airstrikes falling from the sky
 	Airstrikes []Airstrike `json:"airstrikes"`
+
+	// a list of coordinates where an explosion occured and ships get hit
 	Explosions []Explosion `json:"explosions"`
+
+	// a list of bombs dropped by players
 	Bombs []Bomb `json:"bombs"`
+
+	// a list of players that died and whose remains remain for some time
 	Corpses []Corpse `json:"corpses"`
+
+	// the scores of each player
 	Leaderboard []Score `json:"leaderboard"`
+
+	// static game settings (mostly relevant for the browser client)
 	Settings Settings `json:"settings"`
 }
 
+// Score is a tuple of a player's name and their current score
 type Score struct {
 	Name string `json:"name"`
 	Score int `json:"score"`

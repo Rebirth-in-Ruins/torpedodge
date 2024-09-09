@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/coder/websocket/wsjson"
 	"github.com/rebirth-in-ruins/torpedodge/server/protocol"
 )
 
@@ -39,35 +38,35 @@ const (
 
 // Reads incoming messages sent from client's websocket connection
 func (c *Client) readMessages() {
-	defer func() {
-		slog.Info("disonnecting read pipe of client", slog.String("name", c.name))
-		c.conn.Close(websocket.StatusNormalClosure, "")
-	}()
-
 	// TODO: Ping/Pongs for heartbeats to check if still connected
-
 	for {
-		var message string
-		err := wsjson.Read(context.Background(), c.conn, &message)
-		if err != nil && strings.Contains(err.Error(), "failed to get reader") {
-			slog.Error("could not read message", slog.String("error", err.Error()))
+		_, buf, err := c.conn.Read(context.Background())
+		if err != nil {
+			slog.Error("disconnecting client", slog.String("name", c.name), slog.String("error", err.Error()))
+			c.conn.Close(websocket.StatusAbnormalClosure, err.Error())
 			return
-		} else if err != nil && strings.Contains(err.Error(), "use of closed network connection") {
-			slog.Error("could not read message", slog.String("error", err.Error()))
-			return
-		} else if err != nil {
-			panic(err)
 		}
 
+		message := sanitize(buf)
 		event := protocol.Parse(message)
 
-		// Give the client the sent name as well (name helps for logging purposes)
+		// Associate the client with the player's name as well (helps for logging purposes)
 		if payload, ok := event.(protocol.Join); ok {
 			c.name = payload.Name
 		}
 
 		c.server.state.StoreInput(c.id, event)
 	}
+}
+
+func sanitize(msg []byte) string {
+	str := string(msg)
+
+	str = strings.ReplaceAll(str, `"`, ``) // remove quotes, if someone sends json string
+	str = strings.TrimSpace(str) // no newlines
+	str = str[:min(len(str),25)] // Max message length is 25 (a name can only be 20 chars long because of 'JOIN '-prefix)
+
+	return str
 }
 
 
@@ -108,7 +107,7 @@ func (c *Client) writeMessages() {
 				slog.Error("could not write message", slog.String("error", err.Error()))
 				return
 			} else if err != nil {
-				panic(err)
+				panic(err) // TODO:
 			}
 		case <-ticker.C:
 			// TODO: Do ping pongs
