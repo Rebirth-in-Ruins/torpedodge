@@ -42,6 +42,8 @@ class Game extends Phaser.Scene
         this.load.image('ship_py', 'assets/ship_py.png');
         this.load.image('ship_rs', 'assets/ship_rs.png');
 
+        this.load.image('mouth', 'assets/mouth.png');
+
         this.load.image('loot_good', 'assets/loot_good.png');
         this.load.image('loot_mediocre', 'assets/loot_mediocre.png');
 

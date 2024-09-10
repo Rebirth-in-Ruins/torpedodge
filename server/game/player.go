@@ -12,6 +12,9 @@ type Player struct {
 	Y int `json:"y"`
 	Rotation Direction `json:"rotation"`
 
+	// player is about to firah his lazor (movement locked)
+	Charging bool `json:"charging"`
+
 	// determines under which flag the player sails
 	Team string `json:"team"`
 

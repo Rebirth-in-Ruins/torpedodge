@@ -22,8 +22,10 @@ type (
 
 	// client wants to drop a bomb
 	// TODO: Maybe add field Direction as well
-	// TODO: this should be immediate and not locked to the next turn :/
 	Bomb struct{}
+
+	// client is charging his laser to fire
+	Laser struct{}
 
 	// client wants to leave
 	Quit struct{}
@@ -45,6 +47,10 @@ func (m Move) String() string {
 
 func (b Bomb) String() string {
 	return fmt.Sprintf("BOMB")
+}
+
+func (b Laser) String() string {
+	return fmt.Sprintf("LASER")
 }
 
 func (b Quit) String() string {
@@ -74,6 +80,8 @@ func Parse(str string) Message {
 		return Move{Direction: "DOWN"}
 	case "BOMB":
 		return Bomb{}
+	case "LASER":
+		return Laser{}
 	default:
 		return Unknown{Raw: str}
 	}

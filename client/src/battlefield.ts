@@ -46,12 +46,14 @@ export default class Battlefield
 
     renderPlayer(obj: ServerPlayer)
     {
-        const player = new Player(this.scene, obj.name, obj.team, obj.health, obj.bombCount, this.tileSize);
+        const player = new Player(this.scene, obj, this.tileSize);
         this.players.set(obj.id, player);
 
         const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);
         player.x = worldX;
         player.y = worldY;
+
+
         player.lookDirection(obj.rotation);
     }
 

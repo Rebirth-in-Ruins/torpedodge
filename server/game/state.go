@@ -90,6 +90,11 @@ func (g *State) RunSimulation() {
 			continue
 		}
 
+		// Ignore input if player is charging laser
+		if player.Charging {
+			continue
+		}
+
 		switch payload := input.message.(type) {
 		case protocol.Move:
 			g.movePlayer(input.id, Direction(payload.Direction))
@@ -129,6 +134,14 @@ func (g *State) RunSimulation() {
 		}
 	}
 
+	// Players that charged their laser the previous turn will shoot now
+	for _, player := range g.players {
+		if player.Charging {
+			g.spawnLaser(player)
+		}
+	}
+
+
 	// Find players that were hit by explosion
 	for _, player := range g.players {
 		if explosion := g.explosionPositions[player.X][player.Y]; explosion != nil {
@@ -164,15 +177,22 @@ func (g *State) RunSimulation() {
 		player.Score += 1
 	}
 
+	// Let players charge their laser 
+	for _, input := range inputs {
+		if _, ok := input.message.(protocol.Laser); ok {
+			g.chargeLaser(input.id)
+		}
+	}
+
+	// Let players get score if they picked up loot
+	g.checkLoot()
+
 	// Let new players join after everything is safe
 	for _, input := range inputs {
 		if payload, ok := input.message.(protocol.Join); ok {
 			g.spawnPlayer(input.id, payload.Name, payload.Team)
 		}
 	}
-
-	// Let players get score if they picked up loot
-	g.checkLoot()
 
 	// Prepare next round
 	clear(g.inputs)
@@ -188,6 +208,7 @@ func (g *State) spawnPlayer(id int, name string, team string) {
 		X:           x,
 		Y:           y,
 		Rotation:    Left,
+		Charging:    false,
 		Team:        team,
 		Score:       0,
 		Health:      g.Settings.StartHealth,
@@ -258,6 +279,11 @@ func (g *State) spawnAirstrike() {
 // spawnExplosion adds the entity at the location.
 // Helps with detecting if players were hit
 func (g *State) spawnExplosion(x int, y int, playerID int) {
+	// Don't let players spawn explosions outside the grid
+	if g.isOutOfBounds(x, y) {
+		return
+	}
+
 	explosion := &Explosion{
 		ID:       g.newID(),
 		X:        x,
@@ -304,6 +330,31 @@ func (g *State) spawnLoot(typ string, value int) {
 	g.loot[loot.ID] = loot
 
 	slog.Debug("loot spawned", slog.Int("x", loot.X), slog.Int("y", loot.Y))
+}
+
+// spawns explosions in front of the player
+func (g *State) spawnLaser(player *Player) {
+	rotation := player.Rotation
+	switch rotation {
+	case Down:
+		for i := player.Y+1; i < g.Settings.GridSize; i++ {
+			g.spawnExplosion(player.X, i, player.ID)
+		}
+	case Left:
+		for i := player.X-1; i >= 0; i-- {
+			g.spawnExplosion(i, player.Y, player.ID)
+		}
+	case Right:
+		for i := player.X+1; i < g.Settings.GridSize; i++ {
+			g.spawnExplosion(i, player.Y, player.ID)
+		}
+	case Up:
+		for i := player.Y-1; i >= 0; i-- {
+			g.spawnExplosion(player.X, i, player.ID)
+		}
+	}
+
+	player.Charging = false
 }
 
 // A websocket client will report that a player has left because their connection is gone.
@@ -441,6 +492,15 @@ func (g *State) checkLoot() {
 	for i := good; i < goodLootCount; i++ {
 		g.spawnLoot("good", scoreGainGoodLoot)
 	}
+}
+
+func (g *State) chargeLaser(id int) {
+	player, ok := g.players[id]
+	if !ok {
+		panic("could not get player") // TODO:
+	}
+
+	player.Charging = true
 }
 
 // newID hands out a new unique ID for spawning new entities

@@ -16,10 +16,6 @@ const (
 	urlStr = "ws://localhost:8080/play"
 )
 
-var (
-	directions = []string{"LEFT", "BOMB", "LEFT", "DOWN", "DOWN", "RIGHT", "RIGHT", "UP", "UP"}
-)
-
 func main() {
 	conn, _, err := websocket.Dial(context.Background(), urlStr, nil)
 	if err != nil {
@@ -33,12 +29,12 @@ func main() {
 		panic(err)
 	}
 
-    // disable input buffering
-    exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
-    // do not display entered characters on the screen
-    exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
+	// disable input buffering
+	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
+	// do not display entered characters on the screen
+	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
 
-    var b []byte = make([]byte, 1)
+	var b []byte = make([]byte, 1)
 
 	for {
 		// RECEIVE NEXT STATE
@@ -48,21 +44,25 @@ func main() {
 			panic(err)
 		}
 
-        // Wait for input
-        os.Stdin.Read(b)
+		// Wait for input
+		os.Stdin.Read(b)
 
-        action := ""
-        switch string(b) {
-        case "w":
-            action = "UP"
-        case "s":
-            action = "DOWN"
-        case "a":
-            action = "LEFT"
-        case "d":
-            action = "RIGHT"
-        }
-        fmt.Println(action)
+		action := ""
+		switch string(b) {
+		case "w":
+			action = "UP"
+		case "s":
+			action = "DOWN"
+		case "a":
+			action = "LEFT"
+		case "d":
+			action = "RIGHT"
+		case " ":
+			action = "BOMB"
+		case "q":
+			action = "LASER"
+	}
+		fmt.Println(action)
 
 		// SEND ACTION
 		err = wsjson.Write(context.Background(), conn, action)

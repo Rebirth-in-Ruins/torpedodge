@@ -22,6 +22,10 @@ export class ServerPlayer
     y: number
     rotation: string
 
+    // player is about to firah his lazor (movement locked)
+    charging: boolean
+
+    // decides what skin is used
     team: string
 
     // amount of lives
