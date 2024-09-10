@@ -155,6 +155,8 @@ func (g *State) RunSimulation() {
 		}
 	}
 
+	// Restock on bombs for each player
+
 	// Prepare next round
 	clear(g.inputs)
 }
@@ -192,6 +194,16 @@ func (g *State) spawnBomb(id int) {
 		panic("could not find player") // TODO:
 	}
 
+	// Don't allow stacking bombs
+	if g.bombPositions[player.X][player.Y] != nil {
+		return
+	}
+
+	// Player needs to have bombs in his inventory
+	if player.BombCount == 0 {
+		return
+	}
+
 	bomb := &Bomb{
 		ID:        g.newID(),
 		PlayerID: id,
@@ -202,6 +214,9 @@ func (g *State) spawnBomb(id int) {
 
 	g.bombPositions[player.X][player.Y] = bomb
 	g.bombs[bomb.ID] = bomb
+
+	// Player has one less bomb in his stock now
+	player.BombCount--
 
 	slog.Info("bomb dropped", slog.Int("id", bomb.ID), slog.String("player", player.Name))
 }
@@ -299,6 +314,13 @@ func (g *State) removeAirstrike(airstrike *Airstrike) {
 func (g *State) removeBomb(bomb *Bomb) {
 	delete(g.bombs, bomb.ID)
 	g.bombPositions[bomb.X][bomb.Y] = nil
+
+	// Player has a new bomb back in stock
+	player, ok := g.players[bomb.PlayerID]
+	if !ok {
+		panic("player not found") // TODO:
+	}
+	player.BombCount++
 
 	// Spawn explosions at the place where the bomb detonated
 	for i := 0; i < g.Settings.GridSize; i++ {
