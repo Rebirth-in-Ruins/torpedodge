@@ -24,6 +24,7 @@ type State struct {
 	explosions map[int]*Explosion
 	bombs map[int]*Bomb
 	corpses map[int]*Corpse
+	loot map[int]*Loot
 
 	// input of every player
 	inputs map[int]Input
@@ -37,6 +38,7 @@ type State struct {
 	explosionPositions [][]*Explosion
 	bombPositions [][]*Bomb
 	corpsePositions [][]*Corpse
+	lootPositions [][]*Loot
 
 	// game settings
 	Settings Settings
@@ -49,8 +51,22 @@ type State struct {
 }
 
 const (
+	// score gained from surviving a turn
 	scoreGainTurn = 1
+
+	// score gained from hitting a player
 	scoreGainHit = 5
+
+	// an explosion coming from airstrike gets this playerID
+	airstrikeID = 0
+
+	// different types of loot grant score
+	scoreGainMediocreLoot = 6
+	scoreGainGoodLoot = 12
+
+	// TODO: Should be settings
+	mediocreLootCount = 3
+	goodLootCount = 1
 )
 
 func (g *State) RunSimulation() {
@@ -155,7 +171,8 @@ func (g *State) RunSimulation() {
 		}
 	}
 
-	// Restock on bombs for each player
+	// Let players get score if they picked up loot
+	g.checkLoot()
 
 	// Prepare next round
 	clear(g.inputs)
@@ -272,6 +289,23 @@ func (g *State) spawnCorpse(player *Player) {
 	slog.Debug("corpse spawned", slog.Int("x", corpse.X), slog.Int("y", corpse.Y))
 }
 
+func (g *State) spawnLoot(typ string, value int) {
+	x, y := g.getFreeRandomTile()
+
+	loot := &Loot{
+		ID:    g.newID(),
+		Type:  typ,
+		Value: value,
+		X:     x,
+		Y:     y,
+	}
+
+	g.lootPositions[loot.X][loot.Y] = loot
+	g.loot[loot.ID] = loot
+
+	slog.Debug("loot spawned", slog.Int("x", loot.X), slog.Int("y", loot.Y))
+}
+
 // A websocket client will report that a player has left because their connection is gone.
 // TODO: Can this be made private?
 func (g *State) RemovePlayer(id int) {
@@ -292,9 +326,6 @@ func (g *State) sinkShip(player *Player) {
 	delete(g.players, player.ID)
 	g.playerPositions[player.X][player.Y] = nil
 }
-
-// an explosion coming from airstrike gets this playerID
-const airstrikeID = 0
 
 // removeAirstrike removes the entity and replaces it 
 // with explosions at the location
@@ -380,6 +411,38 @@ func (g *State) addEvent(format string, args ...any) {
 	g.Events = g.Events[:min(len(g.Events), 8)] // Upper limit on events
 }
 
+func (g *State) checkLoot() {
+	// Check if player picked up loot
+	for _, loot := range g.loot {
+		player := g.playerPositions[loot.X][loot.Y]
+		if player != nil {
+			player.Score += loot.Value
+			delete(g.loot, loot.ID)
+			g.addEvent("%v found some %v loot", player.Name, loot.Type)
+		}
+	}
+
+	// one good loot and three bad loot types need to exist at all times
+	// TODO: A little much hardcoded lol
+	mediocre := 0
+	good := 0
+	for _, loot := range g.loot {
+		if loot.Type == "mediocre" {
+			mediocre++
+		} else if loot.Type == "good" {
+			good++
+		}
+	}
+
+	// Spawn loot if picked up somewhere
+	for i := mediocre; i < mediocreLootCount; i++ {
+		g.spawnLoot("mediocre", scoreGainMediocreLoot)
+	}
+	for i := good; i < goodLootCount; i++ {
+		g.spawnLoot("good", scoreGainGoodLoot)
+	}
+}
+
 // newID hands out a new unique ID for spawning new entities
 func (g *State) newID() int {
 	result := g.counter
@@ -403,7 +466,7 @@ func (g *State) getFreeRandomTile() (int, int) {
 		y = rand.IntN(g.Settings.GridSize)
 
 		// Retry TODO: Inefficient
-		if g.playerPositions[x][y] != nil || g.airstrikePositions[x][y] != nil {
+		if g.playerPositions[x][y] != nil || g.airstrikePositions[x][y] != nil || g.bombPositions[x][y] != nil || g.lootPositions[x][y] != nil {
 			continue
 		}
 
@@ -439,6 +502,7 @@ func New(settings Settings) *State {
 		explosions:         make(map[int]*Explosion),
 		bombs:              make(map[int]*Bomb),
 		corpses:            make(map[int]*Corpse),
+		loot:               make(map[int]*Loot),
 		inputs:             make(map[int]Input),
 		counter:            0,
 		playerPositions:    datastr.NewGrid[Player](settings.GridSize),
@@ -446,6 +510,7 @@ func New(settings Settings) *State {
 		explosionPositions: datastr.NewGrid[Explosion](settings.GridSize),
 		bombPositions:      datastr.NewGrid[Bomb](settings.GridSize),
 		corpsePositions:    datastr.NewGrid[Corpse](settings.GridSize),
+		lootPositions:      datastr.NewGrid[Loot](settings.GridSize),
 		Settings:           settings,
 		Events:             make([]string, 0),
 		Disconnect:         make(chan int, 10),

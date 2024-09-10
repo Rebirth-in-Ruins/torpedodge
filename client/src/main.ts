@@ -42,6 +42,9 @@ class Game extends Phaser.Scene
         this.load.image('ship_py', 'assets/ship_py.png');
         this.load.image('ship_rs', 'assets/ship_rs.png');
 
+        this.load.image('loot_good', 'assets/loot_good.png');
+        this.load.image('loot_mediocre', 'assets/loot_mediocre.png');
+
         this.load.image('arrow', 'assets/arrow.png');
         this.load.image('bomb', 'assets/bomb.png');
         this.load.image('explosion', 'assets/explosion.png');
@@ -178,6 +181,13 @@ class Game extends Phaser.Scene
         for(const obj of gamestate.corpses)
         {
             this.battlefield.renderCorpse(obj);
+        }
+
+        // Render loot
+        this.battlefield.clearLoot();
+        for(const obj of gamestate.loot)
+        {
+            this.battlefield.renderLoot(obj);
         }
 
         // Update leaderboard

@@ -23,6 +23,9 @@ type GameStateResponse struct {
 	// a list of players that died and whose remains remain for some time
 	Corpses []Corpse `json:"corpses"`
 
+	// a list of things that can be picked up for points
+	Loot []Loot `json:"loot"`
+
 	// the scores of each player
 	Leaderboard []Score `json:"leaderboard"`
 
@@ -73,6 +76,12 @@ func (g *State) JSON() []byte {
 		corpses = append(corpses, *corpse)
 	}
 
+	// Loot
+	loot := make([]Loot, 0)
+	for _, item := range g.loot {
+		loot = append(loot, *item)
+	}
+
 	// Leaderboard
 	leaderboard := make([]Score, 0)
 	for _, player := range g.players {
@@ -85,6 +94,7 @@ func (g *State) JSON() []byte {
 		Explosions:  explosions,
 		Bombs:       bombs,
 		Corpses:     corpses,
+		Loot:        loot,
 		Leaderboard: leaderboard,
 		Events:      g.Events,
 		Settings:    g.Settings,

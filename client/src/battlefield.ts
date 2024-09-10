@@ -2,8 +2,9 @@ import Player from './player';
 import Bomb from './bomb';
 import Explosion from './explosion';
 import Airstrike from './airstrike';
-import { ServerAirstrike, ServerBomb, ServerCorpse, ServerExplosion, ServerPlayer } from './server';
+import { ServerAirstrike, ServerBomb, ServerCorpse, ServerExplosion, ServerLoot, ServerPlayer } from './server';
 import Corpse from './corpse';
+import Loot from './loot';
 
 export default class Battlefield
 {
@@ -21,6 +22,7 @@ export default class Battlefield
     private airstrikes: Map<number, Airstrike> = new Map(); 
     private bombs: Map<number, Bomb> = new Map(); 
     private corpses: Map<number, Corpse> = new Map(); 
+    private loot: Map<number, Loot> = new Map(); 
 
     constructor(scene: Phaser.Scene, gameWidth: number, gameHeight: number, gridCount: number)
     {
@@ -101,6 +103,16 @@ export default class Battlefield
         // sound.play();
     }
 
+    renderLoot(obj: ServerLoot)
+    {
+        const loot = new Loot(this.scene, obj.type, this.tileSize);
+        this.loot.set(obj.id, loot)
+
+        const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);
+        loot.x = worldX;
+        loot.y = worldY;
+    }
+
     clearPlayers()
     {
         for(const [id, player] of this.players)
@@ -134,6 +146,15 @@ export default class Battlefield
         {
             corpse.destroy();
             this.corpses.delete(id);
+        }
+    }
+
+    clearLoot()
+    {
+        for(const [id, loot] of this.loot)
+        {
+            loot.destroy();
+            this.loot.delete(id);
         }
     }
 

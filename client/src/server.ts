@@ -5,6 +5,7 @@ export class GameState
     explosions: Array<ServerExplosion>
     bombs: Array<ServerBomb>
     corpses: Array<ServerCorpse>
+    loot: Array<ServerLoot>
     leaderboard: Array<ServerEntry>
     events: Array<string>
     settings: ServerSettings
@@ -44,6 +45,18 @@ export class ServerCorpse
     x: number
     y: number
     rotation: string
+}
+
+export class ServerLoot
+{
+    id: number
+
+    // good or bad type of loot
+    type: string
+
+    // coordinates
+    x: number
+    y: number
 }
 
 export class ServerEntry
