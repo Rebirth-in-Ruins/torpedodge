@@ -26,5 +26,11 @@ type Settings struct {
 
 	// how many turns the corpose of a ship remains on the map
 	DeathTime int `json:"deathTime"`
+
+	// don't allow joining of new players
+	Locked bool `json:"locked"`
+
+	// don't execute the game but allow joining of new players
+	Paused bool `json:"paused"`
 }
 

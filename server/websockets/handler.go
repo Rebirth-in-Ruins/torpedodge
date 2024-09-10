@@ -9,16 +9,7 @@ import (
 
 // HTTP endpoint to start watching the game.
 func (s *Server) play(w http.ResponseWriter, r *http.Request) {
-	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
-		InsecureSkipVerify:   true,
-	})
-	if err != nil {
-		slog.Info("failed to upgrade", slog.String("error", err.Error()))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// Don't listen to messages from spectators
+	// Determine if client wants to spectate
 	spectator := false
 
 	spectates := r.URL.Query().Get("spectate")
@@ -28,6 +19,23 @@ func (s *Server) play(w http.ResponseWriter, r *http.Request) {
 	} else {
 		slog.Info("player connected")
 	}
+
+	// Don't allow new players if room is locked
+	if s.state.Settings.Locked && !spectator {
+		slog.Warn("entry denied for new player")
+		w.WriteHeader(http.StatusLocked)
+		return
+	}
+
+	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+		InsecureSkipVerify:   true,
+	})
+	if err != nil {
+		slog.Info("failed to upgrade", slog.String("error", err.Error()))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 
 	client := &Client{
 		id: int(s.counter.Load()),
@@ -42,4 +50,25 @@ func (s *Server) play(w http.ResponseWriter, r *http.Request) {
 
 	go client.writeMessages()
 	go client.readMessages()
+}
+
+
+func (s *Server) lock(w http.ResponseWriter, r *http.Request) {
+	username, password, ok := r.BasicAuth()
+	if !ok || username != s.username || password != s.password {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	s.state.LockRoom()
+}
+
+func (s *Server) pause(w http.ResponseWriter, r *http.Request) {
+	username, password, ok := r.BasicAuth()
+	if !ok || username != s.username || password != s.password {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	s.state.PauseGame()
 }

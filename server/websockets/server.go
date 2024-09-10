@@ -22,19 +22,27 @@ type Server struct {
 
 	// incremented and used to assign IDs to clients
 	counter atomic.Uint64
+
+	// basic auth for restricted endpoints
+	username string
+	password string
 }
 
-func New(state *game.State) (*Server, *http.ServeMux) {
+func New(state *game.State, username, password string) (*Server, *http.ServeMux) {
 	server := &Server{
-		Mutex:   sync.Mutex{},
-		clients: make(map[int]*Client),
-		state:   state,
-		counter: atomic.Uint64{},
+		Mutex:    sync.Mutex{},
+		clients:  make(map[int]*Client),
+		state:    state,
+		counter:  atomic.Uint64{},
+		username: username,
+		password: password,
 	}
 	server.counter.Add(1) // 0 is reserved as ID for airstrikes
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/play", server.play)
+	mux.HandleFunc("/lock", server.lock)
+	mux.HandleFunc("/pause", server.pause)
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})

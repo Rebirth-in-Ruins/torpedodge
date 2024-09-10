@@ -24,7 +24,7 @@ func main() {
 		DeathTime:           3,
 	})
 
-	server, mux := websockets.New(gameState)
+	server, mux := websockets.New(gameState, os.Getenv("USER"), os.Getenv("PASS"))
 	go server.StartGame()
 
 	slog.SetDefault(slog.New(

@@ -73,11 +73,23 @@ func (g *State) RunSimulation() {
 	g.Lock()
 	defer g.Unlock()
 
+
 	// Sort inputs by time we received them
 	inputs := slices.Collect(maps.Values(g.inputs))
 	slices.SortFunc(inputs, func(a Input, b Input) int {
 		return a.time.Compare(b.time)
 	})
+	clear(g.inputs)
+
+	// If the game is paused, only listen to JOIN requests
+	if g.Settings.Paused {
+		for _, input := range inputs {
+			if payload, ok := input.message.(protocol.Join); ok {
+				g.spawnPlayer(input.id, payload.Name, payload.Team)
+			}
+		}
+		return
+	}
 
 	// Apply inputs:
 	// - Move players (and check collision)
@@ -196,9 +208,6 @@ func (g *State) RunSimulation() {
 			g.spawnPlayer(input.id, payload.Name, payload.Team)
 		}
 	}
-
-	// Prepare next round
-	clear(g.inputs)
 }
 
 // spawnPlayer places the player entity for a client at a random tile
@@ -259,7 +268,7 @@ func (g *State) spawnBomb(id int) {
 	// Player has one less bomb in his stock now
 	player.BombCount--
 
-	slog.Info("bomb dropped", slog.Int("id", bomb.ID), slog.String("player", player.Name))
+	slog.Debug("bomb dropped", slog.Int("id", bomb.ID), slog.String("player", player.Name))
 }
 
 // spawnAirstrike starts a new count down to explosion at a random tile
@@ -403,7 +412,9 @@ func (g *State) removeBomb(bomb *Bomb) {
 	// Player has a new bomb back in stock
 	player, ok := g.players[bomb.PlayerID]
 	if !ok {
-		panic("player not found") // TODO:
+		// When player left the game already
+		slog.Warn("orphaned bomb found", slog.Int("playerId", bomb.PlayerID))
+		return
 	}
 	player.BombCount++
 
@@ -554,6 +565,44 @@ func (g *State) StoreInput(id int, message protocol.Message) {
 	defer g.Unlock()
 
 	g.inputs[id] = Input{id: id, message: message, time: time.Now()}
+}
+
+// A locked room doesn't allow new players to join
+func (g *State) LockRoom() {
+	g.Lock()
+	defer g.Unlock()
+
+	g.Settings.Locked = !g.Settings.Locked
+	if g.Settings.Locked {
+		g.addEvent("[ADMIN] game locked")
+	} else {
+		g.addEvent("[ADMIN] game unlocked")
+	}
+}
+
+// A paused game freezes the game but allows new players to join
+func (g *State) PauseGame() {
+	g.Lock()
+	defer g.Unlock()
+
+	// Remove things that can hurt players from previous turns
+	for _, airstrike := range g.airstrikes {
+		g.removeAirstrike(airstrike)
+	}
+
+	for _, bomb := range g.bombs {
+		g.removeBomb(bomb)
+	}
+
+	clear(g.explosions)
+	g.explosionPositions = datastr.NewGrid[Explosion](g.Settings.GridSize)
+
+	g.Settings.Paused = !g.Settings.Paused
+	if g.Settings.Paused {
+		g.addEvent("[ADMIN] game paused")
+	} else {
+		g.addEvent("[ADMIN] game unpaused")
+	}
 }
 
 // New starts a fresh game state.
