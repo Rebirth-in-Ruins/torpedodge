@@ -34,7 +34,8 @@ export default class Battlefield
         r1.setOrigin(0,0);
 
         // Draw the grid on top
-        const g1 = scene.add.grid(this.MARGIN_LEFT, this.MARGIN_TOP, gridSize, gridSize, this.tileSize, this.tileSize, 0x0000cc, 1, 0x000000, 0.5);
+        // const g1 = scene.add.grid(this.MARGIN_LEFT, this.MARGIN_TOP, gridSize, gridSize, this.tileSize, this.tileSize, 0x1a96c5, 1, 0x000000, 0.5);
+        const g1 = scene.add.grid(this.MARGIN_LEFT, this.MARGIN_TOP, gridSize, gridSize, this.tileSize, this.tileSize, 0x1a96c5, 1, 0x000000, 0.5);
         g1.setOrigin(0,0);
 
         this.scene = scene;
@@ -43,7 +44,7 @@ export default class Battlefield
 
     renderPlayer(obj: ServerPlayer)
     {
-        const player = new Player(this.scene, obj.name, obj.health, obj.bombCount, this.tileSize);
+        const player = new Player(this.scene, obj.name, obj.team, obj.health, obj.bombCount, this.tileSize);
         this.players.set(obj.id, player);
 
         const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);

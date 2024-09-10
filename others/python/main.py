@@ -27,7 +27,7 @@ def on_close(ws, close_status_code, close_msg):
     print(close_msg)
 
 def on_open(ws):
-    ws.send("JOIN "+player_name)
+    ws.send("JOIN "+player_name+".py")
 
 ws = websocket.WebSocketApp("ws://localhost:8080/play", on_open=on_open,
                             on_message=on_message,

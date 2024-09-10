@@ -26,7 +26,7 @@ func main() {
 	defer conn.CloseNow()
 
 	// Join as player
-	err = wsjson.Write(context.Background(), conn, "JOIN JulienBot")
+	err = wsjson.Write(context.Background(), conn, "JOIN JulienBot.go")
 	if err != nil {
 		panic(err)
 	}

@@ -12,6 +12,9 @@ type Player struct {
 	Y int `json:"y"`
 	Rotation Direction `json:"rotation"`
 
+	// determines under which flag the player sails
+	Team string `json:"team"`
+
 	// points gained
 	Score int `json:"score"`
 

@@ -151,7 +151,7 @@ func (g *State) RunSimulation() {
 	// Let new players join after everything is safe
 	for _, input := range inputs {
 		if payload, ok := input.message.(protocol.Join); ok {
-			g.spawnPlayer(input.id, payload.Name)
+			g.spawnPlayer(input.id, payload.Name, payload.Team)
 		}
 	}
 
@@ -160,7 +160,7 @@ func (g *State) RunSimulation() {
 }
 
 // spawnPlayer places the player entity for a client at a random tile
-func (g *State) spawnPlayer(id int, name string) {
+func (g *State) spawnPlayer(id int, name string, team string) {
 	x, y := g.getFreeRandomTile()
 
 	player := &Player{
@@ -169,6 +169,7 @@ func (g *State) spawnPlayer(id int, name string) {
 		X:           x,
 		Y:           y,
 		Rotation:    Left,
+		Team:        team,
 		Score:       0,
 		Health:      g.Settings.StartHealth,
 		BombCount:   g.Settings.InventorySize,

@@ -24,7 +24,7 @@ import kotlin.system.exitProcess;
          var directions = arrayOf("LEFT", "BOMB", "LEFT", "DOWN", "DOWN", "RIGHT", "RIGHT", "UP", "UP")
 
          override fun onOpen(webSocket: WebSocket, response: okhttp3.Response) {
-             webSocket.send("JOIN " + playerName)
+             webSocket.send("JOIN " + playerName + ".kt")
          }
 
          override fun onMessage(webSocket: WebSocket, text: String) {

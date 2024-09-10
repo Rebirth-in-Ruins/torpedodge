@@ -12,6 +12,7 @@ type (
 	// client wants to join
 	Join struct{
 		Name string
+		Team string
 	}
 
 	// client wants to move in direction
@@ -56,7 +57,8 @@ func (u Unknown) String() string {
 
 func Parse(str string) Message {
 	if strings.HasPrefix(str, "JOIN ") {
-		return Join{Name: str[5:]}
+		name, team := parseName(str)
+		return Join{Name: name, Team: team}
 	}
 
 	switch str {
@@ -75,4 +77,28 @@ func Parse(str string) Message {
 	default:
 		return Unknown{Raw: str}
 	}
+}
+
+// The team is decided by their suffix
+// like .py, .go, .js, .rs
+func parseName(input string) (name string, team string) {
+
+	noprefix := input[5:] // Remove "JOIN " prefix
+
+	nosuffix := noprefix[:len(noprefix)-3] // remove ".xx" suffix
+
+	switch {
+	case strings.HasSuffix(noprefix, ".go"):
+		return nosuffix, "golang"
+	case strings.HasSuffix(noprefix, ".js"):
+		return nosuffix, "javascript"
+	case strings.HasSuffix(noprefix, ".rs"):
+		return nosuffix, "rust"
+	case strings.HasSuffix(noprefix, ".kt"):
+		return nosuffix, "kotlin"
+	case strings.HasSuffix(noprefix, ".py"):
+		return nosuffix, "python"
+	}
+
+	return noprefix, "none"
 }

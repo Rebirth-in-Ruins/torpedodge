@@ -36,6 +36,12 @@ class Game extends Phaser.Scene
         // Images
         this.load.image('ship', 'assets/ship.png');
         this.load.image('ship_dead', 'assets/ship_dead.png');
+        this.load.image('ship_go', 'assets/ship_go.png');
+        this.load.image('ship_js', 'assets/ship_js.png');
+        this.load.image('ship_kt', 'assets/ship_kt.png');
+        this.load.image('ship_py', 'assets/ship_py.png');
+        this.load.image('ship_rs', 'assets/ship_rs.png');
+
         this.load.image('arrow', 'assets/arrow.png');
         this.load.image('bomb', 'assets/bomb.png');
         this.load.image('explosion', 'assets/explosion.png');
@@ -196,7 +202,9 @@ class Game extends Phaser.Scene
 
 const config = {
     type: Phaser.AUTO,
-    backgroundColor: '#0000cc',
+    backgroundColor: '#1a96c5',
+    // backgroundColor: '#0000cc',
+    // backgroundColor: '#225777', // TODO: decide
     width: 1000,
     height: 700,
     scene: Game,

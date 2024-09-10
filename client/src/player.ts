@@ -18,12 +18,15 @@ export default class Player
     private SCALE_FACTOR: number = 0.8;
     private NAMETAG_OFFSET: number = -15;
 
-    constructor(scene: Phaser.Scene, name: string, health: number, bombs: number, tileSize: number) 
+    constructor(scene: Phaser.Scene, name: string, team: string, health: number, bombs: number, tileSize: number) 
     {
         this.tileSize = tileSize;
 
+        // pick what flag to sail with
+        const texture = this.pickTeam(team);
+
         // Spawn somewhere far away and let the map place it into correct position
-        this.ship = scene.add.image(-100, -100, 'ship');
+        this.ship = scene.add.image(-100, -100, texture);
         this.ship.displayWidth = this.tileSize * this.SCALE_FACTOR;
         this.ship.displayHeight = this.tileSize * this.SCALE_FACTOR;
 
@@ -34,6 +37,25 @@ export default class Player
 
         this.nameTag = scene.add.text(10, 10, fullName, { font: '10px monospace', strokeThickness: 2, stroke: '#000', align: 'center'});
         this.nameTag.setOrigin(0.5, 1);
+    }
+
+    pickTeam(team: string): string
+    {
+        switch(team)
+        {
+            case 'golang':
+                return 'ship_go';
+            case 'javascript':
+                return 'ship_js';
+            case 'kotlin':
+                return 'ship_kt';
+            case 'python':
+                return 'ship_py';
+            case 'rust':
+                return 'ship_rs';
+            default:
+                return 'ship';
+        }
     }
 
     placeArrow(direction: Direction)

@@ -6,7 +6,7 @@ export class GameState
     bombs: Array<ServerBomb>
     corpses: Array<ServerCorpse>
     leaderboard: Array<ServerEntry>
-    events: Array<String>
+    events: Array<string>
     settings: ServerSettings
 }
 
@@ -20,6 +20,8 @@ export class ServerPlayer
     x: number
     y: number
     rotation: string
+
+    team: string
 
     // amount of lives
     health: number

@@ -36,7 +36,7 @@ func run() error {
 	defer conn.CloseNow()
 
 	// Send initial JOIN message with your name
-	err = wsjson.Read(context.Background(), conn, "JOIN "+playerName)
+	err = wsjson.Read(context.Background(), conn, "JOIN "+playerName+".go")
 	if err != nil {
 		return fmt.Errorf("could not join server: %w", err)
 	}

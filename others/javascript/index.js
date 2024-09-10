@@ -9,7 +9,7 @@ ws.on('error', console.error);
 
 // Send initial JOIN message with your name
 ws.on('open', function open() {
-  ws.send('JOIN ' + playerName);
+  ws.send('JOIN ' + playerName + '.js');
 });
 
 ws.on('close', function close(_, reason) {
