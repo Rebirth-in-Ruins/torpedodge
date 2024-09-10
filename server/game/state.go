@@ -41,6 +41,9 @@ type State struct {
 	// game settings
 	Settings Settings
 
+	// recent events that happened (player hit, death)
+	Events []string
+
 	// game tells which client to disconnect (because of death)
 	Disconnect chan int
 }
@@ -117,13 +120,20 @@ func (g *State) RunSimulation() {
 
 			// Grant score to player if hit by them
 			if explosion.PlayerID != airstrikeID {
-				g.players[explosion.PlayerID].Score += scoreGainHit
+				hitter := g.players[explosion.PlayerID]
+				hitter.Score += scoreGainHit
+
+				if hitter.ID == player.ID {
+					g.addEvent("%v hurt itself in confusion", player.Name)
+				} else {
+					g.addEvent("%v got hit by %v", player.Name, hitter.Name)
+				}
+			} else {
+				g.addEvent("%v took a hit", player.Name)
 			}
-			// TODO: Event for hit
 		}
 	}
 
-	// TODO: create corpse entity to simplify this
 	// Disconnect players that were dead for long enough
 	for _, player := range g.players {
 		if player.IsDead() {
@@ -169,6 +179,7 @@ func (g *State) spawnPlayer(id int, name string) {
 	g.playerPositions[x][y] = player
 	g.players[id] = player
 
+	g.addEvent("%v joined", player.Name)
 	slog.Info("player joined", slog.String("name", player.Name))
 }
 
@@ -241,6 +252,7 @@ func (g *State) spawnCorpse(player *Player) {
 	g.corpsePositions[corpse.X][corpse.Y] = corpse
 	g.corpses[corpse.ID] = corpse
 
+	g.addEvent("%v died", player.Name)
 	slog.Debug("corpse spawned", slog.Int("x", corpse.X), slog.Int("y", corpse.Y))
 }
 
@@ -340,6 +352,11 @@ func (g *State) movePlayer(id int, direction Direction) {
 	player.Rotation = direction
 }
 
+func (g *State) addEvent(format string, args ...any) {
+	g.Events = slices.Insert(g.Events, 0, fmt.Sprintf(format, args...))
+	g.Events = g.Events[:min(len(g.Events), 8)] // Upper limit on events
+}
+
 // newID hands out a new unique ID for spawning new entities
 func (g *State) newID() int {
 	result := g.counter
@@ -398,7 +415,7 @@ func New(settings Settings) *State {
 		airstrikes:         make(map[int]*Airstrike),
 		explosions:         make(map[int]*Explosion),
 		bombs:              make(map[int]*Bomb),
-		corpses:             make(map[int]*Corpse),
+		corpses:            make(map[int]*Corpse),
 		inputs:             make(map[int]Input),
 		counter:            0,
 		playerPositions:    datastr.NewGrid[Player](settings.GridSize),
@@ -407,6 +424,7 @@ func New(settings Settings) *State {
 		bombPositions:      datastr.NewGrid[Bomb](settings.GridSize),
 		corpsePositions:    datastr.NewGrid[Corpse](settings.GridSize),
 		Settings:           settings,
+		Events:             make([]string, 0),
 		Disconnect:         make(chan int, 10),
 	}
 }

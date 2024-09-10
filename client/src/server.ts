@@ -1,3 +1,15 @@
+export class GameState
+{
+    players: Array<ServerPlayer>
+    airstrikes: Array<ServerAirstrike>
+    explosions: Array<ServerExplosion>
+    bombs: Array<ServerBomb>
+    corpses: Array<ServerCorpse>
+    leaderboard: Array<ServerEntry>
+    events: Array<String>
+    settings: ServerSettings
+}
+
 export class ServerPlayer
 {
     id: number
@@ -83,16 +95,5 @@ export class ServerSettings
 
     // how many lives the player has 
     startHealth: number
-}
-
-export class GameState
-{
-    players: Array<ServerPlayer>
-    airstrikes: Array<ServerAirstrike>
-    explosions: Array<ServerExplosion>
-    bombs: Array<ServerBomb>
-    corpses: Array<ServerCorpse>
-    leaderboard: Array<ServerEntry>
-    settings: ServerSettings
 }
 

@@ -26,6 +26,9 @@ type GameStateResponse struct {
 	// the scores of each player
 	Leaderboard []Score `json:"leaderboard"`
 
+	// text of recent events
+	Events []string `json:"events"`
+
 	// static game settings (mostly relevant for the browser client)
 	Settings Settings `json:"settings"`
 }
@@ -83,6 +86,7 @@ func (g *State) JSON() []byte {
 		Bombs:       bombs,
 		Corpses:     corpses,
 		Leaderboard: leaderboard,
+		Events:      g.Events,
 		Settings:    g.Settings,
 	}
 

@@ -8,15 +8,15 @@ export default class Leaderboard
 
     constructor(scene: Phaser.Scene, gameWidth: number)
     {
-        this.text = scene.add.text(gameWidth * 0.65, 50, 'LEADERBOARD', { font: '16px monospace', stroke: 'black', strokeThickness: 2});
+        this.text = scene.add.text(gameWidth * 0.63, 50, 'LEADERBOARD', { font: '16px monospace', stroke: 'black', strokeThickness: 2});
     }
 
     render(list: Array<ServerEntry>)
     {
+        // Leaderboard
         let str = 'LEADERBOARD\n';
         
         list.sort((a, b) => b.score - a.score);
-        
         list.forEach((entry, index) =>
         {
             const name = entry.name.padEnd(this.MAX_LENGTH, ' ');

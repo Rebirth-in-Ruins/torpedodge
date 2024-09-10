@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import ProgressBar from './progressbar';
 import Battlefield from './battlefield';
 import Leaderboard from './leaderboard';
+import Eventboard from './eventboard';
 import Button from './button';
 import { GameState, ServerSettings } from './server';
 
@@ -13,6 +14,7 @@ class Game extends Phaser.Scene
     private battlefield: Battlefield;
 
     private leaderboard: Leaderboard;
+    private eventboard: Eventboard;
 
     private statusText: Phaser.GameObjects.Text;
 
@@ -71,6 +73,7 @@ class Game extends Phaser.Scene
 
         this.progressBar = new ProgressBar(this, width, height);
         this.leaderboard = new Leaderboard(this, width);
+        this.eventboard = new Eventboard(this, width);
 
         this.anims.createFromAseprite('bomba');
 
@@ -168,11 +171,14 @@ class Game extends Phaser.Scene
         this.battlefield.clearCorpses();
         for(const obj of gamestate.corpses)
         {
-            this.battlefield.renderCorpse(obj, this.deathSound);
+            this.battlefield.renderCorpse(obj);
         }
 
         // Update leaderboard
         this.leaderboard.render(gamestate.leaderboard);
+
+        // Update eventboard
+        this.eventboard.render(gamestate.events);
 
         this.currentTurnDuration = 0;
     }
