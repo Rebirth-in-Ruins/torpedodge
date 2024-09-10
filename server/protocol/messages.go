@@ -20,9 +20,10 @@ type (
 		Direction string
 	}
 
-	// client wants to drop a bomb
-	// TODO: Maybe add field Direction as well
-	Bomb struct{}
+	// client wants to drop a bomb (and optionally move a position)
+	Bomb struct{
+		Direction string
+	}
 
 	// client is charging his laser to fire
 	Laser struct{}
@@ -79,7 +80,15 @@ func Parse(str string) Message {
 	case "DOWN":
 		return Move{Direction: "DOWN"}
 	case "BOMB":
-		return Bomb{}
+		return Bomb{Direction: ""}
+	case "BOMBLEFT":
+		return Bomb{Direction: "LEFT"}
+	case "BOMBRIGHT":
+		return Bomb{Direction: "RIGHT"}
+	case "BOMBUP":
+		return Bomb{Direction: "UP"}
+	case "BOMBDOWN":
+		return Bomb{Direction: "DOWN"}
 	case "LASER":
 		return Laser{}
 	default:

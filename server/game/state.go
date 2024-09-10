@@ -100,6 +100,9 @@ func (g *State) RunSimulation() {
 			g.movePlayer(input.id, Direction(payload.Direction))
 		case protocol.Bomb:
 			g.spawnBomb(input.id)
+			if payload.Direction != "" {
+				g.movePlayer(input.id, Direction(payload.Direction))
+			}
 		}
 	}
 

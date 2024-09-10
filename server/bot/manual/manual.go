@@ -61,7 +61,15 @@ func main() {
 			action = "BOMB"
 		case "q":
 			action = "LASER"
-	}
+		case "j":
+			action = "BOMBDOWN"
+		case "k":
+			action = "BOMBUP"
+		case "h":
+			action = "BOMBLEFT"
+		case "l":
+			action = "BOMBRIGHT"
+		}
 		fmt.Println(action)
 
 		// SEND ACTION
