@@ -3,6 +3,8 @@ package game
 import (
 	"encoding/json"
 	"log/slog"
+
+	"github.com/rebirth-in-ruins/torpedodge/server/bestlist"
 )
 
 // GameStateResponse lists all entities and their position
@@ -29,6 +31,12 @@ type GameStateResponse struct {
 	// the scores of each player
 	Leaderboard []Score `json:"leaderboard"`
 
+	// a list of the highest scorers
+	Kings []bestlist.Entry `json:"kings"`
+
+	// a list of things that can be picked up for points
+	Animations []Animation `json:"animations"`
+
 	// text of recent events
 	Events []string `json:"events"`
 
@@ -42,9 +50,11 @@ type Score struct {
 	Score int `json:"score"`
 }
 
-func (g *State) JSON() []byte {
-	g.Lock()
-	defer g.Unlock()
+func (g *State) JSON(lock bool) []byte {
+	if lock { // Short-term hack because one caller already has this lock...
+		g.Lock()
+		defer g.Unlock()
+	}
 
 	// Players
 	players := make([]Player, 0)
@@ -96,7 +106,9 @@ func (g *State) JSON() []byte {
 		Corpses:     corpses,
 		Loot:        loot,
 		Leaderboard: leaderboard,
-		Events:      g.Events,
+		Kings:       g.bestlist.GetTop3(),
+		Animations:  g.animations,
+		Events:      g.events,
 		Settings:    g.Settings,
 	}
 

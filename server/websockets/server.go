@@ -60,25 +60,33 @@ func (s *Server) StartGame() {
 	ticker := time.NewTicker(s.state.Settings.TurnDuration)
 
 	for {
+		// If no players and no spectators, don't run the game
+		if len(s.clients) == 0 {
+			continue
+		}
+
 		select {
 		case <- ticker.C:
 			s.state.RunSimulation()
 
-			message := s.state.JSON()
+			message := s.state.JSON(true)
 
 			s.Lock()
 			for _, client := range s.clients {
 				select {
 				case client.send <- message:
 				default:
-					// TODO: I can't explain why this occurs but it's necessary
-					// TODO: do we delete clients from the map?
-					slog.Info("broadcast to closed channel occurred")
+					// Sometimes the read pipe of spectators is still open
+					// even if they closed the the browser which is detected
+					// and cleaned up in here.
+					slog.Info("write to closed channel occurred")
 					close(client.send)
 					delete(s.clients, client.id)
 				}
 			}
 			s.Unlock()
+
+		// Game tells server to disconnect a player that has died
 		case id := <-s.state.Disconnect:
 			client := s.clients[id]
 			client.disconnect()

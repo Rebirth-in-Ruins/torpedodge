@@ -2,7 +2,8 @@ import Player from './player';
 import Bomb from './bomb';
 import Explosion from './explosion';
 import Airstrike from './airstrike';
-import { ServerAirstrike, ServerBomb, ServerCorpse, ServerExplosion, ServerLoot, ServerPlayer } from './server';
+import Animation from './animation';
+import { ServerAirstrike, ServerAnimation, ServerBomb, ServerCorpse, ServerExplosion, ServerLoot, ServerPlayer } from './server';
 import Corpse from './corpse';
 import Loot from './loot';
 
@@ -113,6 +114,12 @@ export default class Battlefield
         const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);
         loot.x = worldX;
         loot.y = worldY;
+    }
+
+    renderAnimations(obj: ServerAnimation)
+    {
+        const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);
+        new Animation(this.scene, obj.name, worldX, worldY);
     }
 
     clearPlayers()

@@ -1,5 +1,3 @@
-import { ServerEntry } from './server';
-
 export default class Eventboard
 {
     private text: Phaser.GameObjects.Text;
@@ -8,10 +6,10 @@ export default class Eventboard
 
     constructor(scene: Phaser.Scene, gameWidth: number)
     {
-        this.text = scene.add.text(gameWidth * 0.63, 320, 'EVENTS', { font: '16px monospace', stroke: 'black', strokeThickness: 2});
+        this.text = scene.add.text(gameWidth * 0.63, 450, 'EVENTS', { font: '16px monospace', stroke: 'black', strokeThickness: 2});
     }
 
-    render(list: Array<String>)
+    render(list: Array<string>)
     {
         let str = 'EVENTS\n';
         for(const entry of list)

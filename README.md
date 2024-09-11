@@ -1,4 +1,7 @@
-# Torpedo Dodger
+# Torpedodge
+
+TODO: README
+
 Genre: Bullet Hell  
 
 Karte: 5x5 Grid  

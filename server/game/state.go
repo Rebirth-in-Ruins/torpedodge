@@ -10,6 +10,7 @@ import (
 
 	"math/rand/v2"
 
+	"github.com/rebirth-in-ruins/torpedodge/server/bestlist"
 	"github.com/rebirth-in-ruins/torpedodge/server/datastr"
 	"github.com/rebirth-in-ruins/torpedodge/server/protocol"
 )
@@ -44,7 +45,12 @@ type State struct {
 	Settings Settings
 
 	// recent events that happened (player hit, death)
-	Events []string
+	events []string
+
+	// fancy animations that can be rendered on the client
+	animations []Animation
+
+	bestlist *bestlist.Repository
 
 	// game tells which client to disconnect (because of death)
 	Disconnect chan int
@@ -80,6 +86,9 @@ func (g *State) RunSimulation() {
 		return a.time.Compare(b.time)
 	})
 	clear(g.inputs)
+
+	// Clear previous turn's animations
+	clear(g.animations)
 
 	// If the game is paused, only listen to JOIN requests
 	if g.Settings.Paused {
@@ -208,6 +217,8 @@ func (g *State) RunSimulation() {
 			g.spawnPlayer(input.id, payload.Name, payload.Team)
 		}
 	}
+
+	g.storeState()
 }
 
 // spawnPlayer places the player entity for a client at a random tile
@@ -472,8 +483,16 @@ func (g *State) movePlayer(id int, direction Direction) {
 }
 
 func (g *State) addEvent(format string, args ...any) {
-	g.Events = slices.Insert(g.Events, 0, fmt.Sprintf(format, args...))
-	g.Events = g.Events[:min(len(g.Events), 8)] // Upper limit on events
+	g.events = slices.Insert(g.events, 0, fmt.Sprintf(format, args...))
+	g.events = g.events[:min(len(g.events), 5)] // Upper limit on events
+}
+
+func (g *State) addAnimation(name string, x, y int) {
+	g.animations = append(g.animations, Animation{
+		Name: name,
+		X:    x,
+		Y:    y,
+	})
 }
 
 func (g *State) checkLoot() {
@@ -548,6 +567,14 @@ func (g *State) getFreeRandomTile() (int, int) {
 	}
 }
 
+// things to keep persistent: record of state and player scores
+func (g *State) storeState() {
+	g.bestlist.InsertState(g.JSON(false))
+	for _, player := range g.players {
+		g.bestlist.InsertScore(player.Name, player.Score)
+	}
+}
+
 type Input struct {
 	id int
 	message protocol.Message
@@ -606,7 +633,12 @@ func (g *State) PauseGame() {
 }
 
 // New starts a fresh game state.
-func New(settings Settings) *State {
+func New(url string, settings Settings) (*State, error) {
+	repo, err := bestlist.New(url)
+	if err != nil {
+		return nil, fmt.Errorf("creating a bestlist: %w", err)
+	}
+
 	return &State{
 		Mutex:              sync.Mutex{},
 		players:            make(map[int]*Player),
@@ -624,8 +656,10 @@ func New(settings Settings) *State {
 		corpsePositions:    datastr.NewGrid[Corpse](settings.GridSize),
 		lootPositions:      datastr.NewGrid[Loot](settings.GridSize),
 		Settings:           settings,
-		Events:             make([]string, 0),
+		events:             make([]string, 0),
+		animations:         []Animation{},
+		bestlist:           repo,
 		Disconnect:         make(chan int, 10),
-	}
+	}, nil
 }
 

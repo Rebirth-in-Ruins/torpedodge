@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"strings"
-	"time"
 
 	"github.com/coder/websocket"
 	"github.com/rebirth-in-ruins/torpedodge/server/protocol"
@@ -28,23 +27,17 @@ type Client struct {
 	spectator bool
 }
 
-const (
-	// Time allowed to read the next pong message from the peer.
-	pongWait = 60 * time.Second
-
-	// Send pings to peer with this period. Must be less than pongWait.
-	pingPeriod = (pongWait * 9) / 10
-)
-
 // Reads incoming messages sent from client's websocket connection
 func (c *Client) readMessages() {
-	// TODO: Ping/Pongs for heartbeats to check if still connected
+	defer func() {
+		c.conn.Close(websocket.StatusAbnormalClosure, "not responsive")
+		slog.Debug("disconnecting read pipe of client", slog.String("name", c.name))
+	}()
+
 	for {
 		_, buf, err := c.conn.Read(context.Background())
 		if err != nil {
-			slog.Error("disconnecting client", slog.String("name", c.name), slog.String("error", err.Error()))
-			c.conn.Close(websocket.StatusAbnormalClosure, err.Error())
-			return
+			return // Occurs when websocket connection closed
 		}
 
 		message := sanitize(buf)
@@ -72,15 +65,10 @@ func sanitize(msg []byte) string {
 
 // server -> client.writeMessages -> player's websocket connection
 func (c *Client) writeMessages() {
-	// Regularly do ping/pongs as heartbeat
-	ticker := time.NewTicker(pingPeriod)
-
 	defer func() {
-		ticker.Stop()
-		c.conn.Close(websocket.StatusNormalClosure, "")
+		c.conn.Close(websocket.StatusNormalClosure, "not responsive")
 		slog.Info("disonnecting write pipe of client", slog.String("name", c.name))
 
-		// TODO: Delete on Read or write pipeline?
 		if !c.spectator {
 			c.server.state.RemovePlayer(c.id)
 		}
@@ -88,29 +76,16 @@ func (c *Client) writeMessages() {
 
 	// Send spectators the game state instantly so they can render it
 	if c.spectator {
-		c.send <- c.server.state.JSON()
+		c.send <- c.server.state.JSON(true)
 	}
 
 	for {
 		select {
-		case message, ok := <-c.send:
-			if !ok {
-				// "The hub closed the channel because someone unregistered"
-				panic("This happened")
-			}
-			
+		case message := <-c.send:
 			err := c.conn.Write(context.Background(), websocket.MessageText, message)
-			if err != nil && strings.Contains(err.Error(), "use of closed network connection"){
-				slog.Error("could not write message", slog.String("error", err.Error()))
-				return
-			} else if err != nil && strings.Contains(err.Error(), "failed to flush") {
-				slog.Error("could not write message", slog.String("error", err.Error()))
-				return
-			} else if err != nil {
-				panic(err) // TODO:
+			if err != nil {
+				return // Occurs when websocket connection closed
 			}
-		case <-ticker.C:
-			// TODO: Do ping pongs
 		}
 	}
 }

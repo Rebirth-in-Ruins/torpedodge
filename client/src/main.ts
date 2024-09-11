@@ -5,6 +5,7 @@ import Leaderboard from './leaderboard';
 import Eventboard from './eventboard';
 import Button from './button';
 import { GameState, ServerSettings } from './server';
+import Kingboard from './kingboard';
 
 class Game extends Phaser.Scene
 {
@@ -15,6 +16,7 @@ class Game extends Phaser.Scene
 
     private leaderboard: Leaderboard;
     private eventboard: Eventboard;
+    private kingboard: Kingboard;
 
     private statusText: Phaser.GameObjects.Text;
 
@@ -84,6 +86,7 @@ class Game extends Phaser.Scene
 
         this.progressBar = new ProgressBar(this, width, height);
         this.leaderboard = new Leaderboard(this, width);
+        this.kingboard = new Kingboard(this, width);
         this.eventboard = new Eventboard(this, width);
 
         this.anims.createFromAseprite('bomba');
@@ -140,8 +143,6 @@ class Game extends Phaser.Scene
 
     render(gamestate: GameState)
     {
-        console.log(gamestate);
-
         // Render map when we received the settings (if the settings change the client is out of sync but cba).
         if(this.settings === undefined)
         {
@@ -154,49 +155,43 @@ class Game extends Phaser.Scene
         // Render players
         this.battlefield.clearPlayers();
         for(const obj of gamestate.players)
-        {
             this.battlefield.renderPlayer(obj);
-        }
 
         // Render airstrikes
         this.battlefield.clearAirstrikes();
         for(const obj of gamestate.airstrikes)
-        {
             this.battlefield.renderAirstrike(obj);
-        }
 
         // Render bombs
         this.battlefield.clearBombs();
         for(const obj of gamestate.bombs)
-        {
             this.battlefield.renderBomb(obj);
-        }
 
-        // Render explosions
-        for(const obj of gamestate.explosions)
-        {
-            this.battlefield.renderExplosions(obj, this.explodeSound, this.focusLost);
-        }
 
         // Render corpses
         this.battlefield.clearCorpses();
         for(const obj of gamestate.corpses)
-        {
             this.battlefield.renderCorpse(obj);
-        }
 
         // Render loot
         this.battlefield.clearLoot();
         for(const obj of gamestate.loot)
-        {
             this.battlefield.renderLoot(obj);
-        }
+
+        // Render explosions
+        for(const obj of gamestate.explosions)
+            this.battlefield.renderExplosions(obj, this.explodeSound, this.focusLost);
+
+        // Show animations
+        for(const obj of gamestate.animations)
+            this.battlefield.renderAnimations(obj);
 
         // Update leaderboard
         this.leaderboard.render(gamestate.leaderboard);
 
         // Update eventboard
         this.eventboard.render(gamestate.events);
+        this.kingboard.render(gamestate.kings);
 
         this.currentTurnDuration = 0;
     }
@@ -215,8 +210,6 @@ class Game extends Phaser.Scene
 const config = {
     type: Phaser.AUTO,
     backgroundColor: '#1a96c5',
-    // backgroundColor: '#0000cc',
-    // backgroundColor: '#225777', // TODO: decide
     width: 1000,
     height: 700,
     scene: Game,

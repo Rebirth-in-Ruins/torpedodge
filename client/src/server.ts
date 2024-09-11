@@ -7,6 +7,8 @@ export class GameState
     corpses: Array<ServerCorpse>
     loot: Array<ServerLoot>
     leaderboard: Array<ServerEntry>
+    kings: Array<ServerKing>
+    animations: Array<ServerAnimation>
     events: Array<string>
     settings: ServerSettings
 }
@@ -116,3 +118,16 @@ export class ServerSettings
     startHealth: number
 }
 
+export class ServerAnimation
+{
+    name: string
+    x: number
+    y: number
+}
+
+export class ServerKing
+{
+    name: string
+    score: number
+    created_at: string
+}

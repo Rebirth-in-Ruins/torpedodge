@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS states (
+    created_at TIMESTAMP PRIMARY KEY DEFAULT NOW(),
+    state JSONB
+);
+
+CREATE TABLE IF NOT EXISTS scores (
+    name TEXT PRIMARY KEY,
+    score INTEGER,
+    created_at TIMESTAMP DEFAULT NOW()
+);
