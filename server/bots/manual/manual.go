@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	urlStr = "ws://localhost:8080/play"
-	// urlStr = "wss://gameserver.resamvi.io/play"
+	// urlStr = "ws://localhost:8080/play"
+	urlStr = "wss://gameserver.resamvi.io/play"
 )
 
 func main() {
