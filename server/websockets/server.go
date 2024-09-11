@@ -1,6 +1,7 @@
 package websockets
 
 import (
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"sync"
@@ -85,6 +86,27 @@ func (s *Server) StartGame() {
 				}
 			}
 			s.Unlock()
+
+		case inputs := <-s.state.Change:
+			b, err := json.Marshal(inputs)
+			if err != nil {
+				slog.Error(err.Error())
+			}
+
+			for _, client := range s.clients {
+				// This data is only for spectators
+				if !client.spectator {
+					continue
+				}
+
+				select {
+				case client.send <- b:
+				default:
+					slog.Info("write to closed channel occurred")
+					close(client.send)
+					delete(s.clients, client.id)
+				}
+			}
 
 		// Game tells server to disconnect a player that has died
 		case id := <-s.state.Disconnect:

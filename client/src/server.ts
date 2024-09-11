@@ -131,3 +131,9 @@ export class ServerKing
     score: number
     created_at: string
 }
+
+export class ServerIntention
+{
+    id: number
+    direction: string
+}

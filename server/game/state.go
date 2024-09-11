@@ -54,6 +54,7 @@ type State struct {
 
 	// game tells which client to disconnect (because of death)
 	Disconnect chan int
+	Change chan []Intention
 }
 
 const (
@@ -585,6 +586,11 @@ func (i Input) String() string {
 	return fmt.Sprintf("%v:{%s}", i.id ,i.message)
 }
 
+type Intention struct {
+	ID int `json:"id"`
+	Direction string `json:"direction"`
+}
+
 // TODO: Some messages should be evaluated immediately and the state should be sent to spectators (like join, direction known)
 // Needs to be thread-safe.
 func (g *State) StoreInput(id int, message protocol.Message) {
@@ -592,6 +598,21 @@ func (g *State) StoreInput(id int, message protocol.Message) {
 	defer g.Unlock()
 
 	g.inputs[id] = Input{id: id, message: message, time: time.Now()}
+
+	intentions := make([]Intention, 0)
+	for _, input := range g.inputs {
+		switch msg := input.message.(type) {
+
+		case protocol.Bomb:
+			intentions = append(intentions, Intention{ID: input.id, Direction: msg.Direction})
+		case protocol.Move:
+			intentions = append(intentions, Intention{ID: input.id, Direction: msg.Direction})
+		default:
+			continue
+		}
+	}
+
+	g.Change <- intentions
 }
 
 // A locked room doesn't allow new players to join
@@ -660,6 +681,7 @@ func New(url string, settings Settings) (*State, error) {
 		animations:         []Animation{},
 		bestlist:           repo,
 		Disconnect:         make(chan int, 10),
+		Change:             make(chan []Intention, 10),
 	}, nil
 }
 

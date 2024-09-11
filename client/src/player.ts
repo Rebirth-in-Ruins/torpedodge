@@ -1,13 +1,5 @@
 import { ServerPlayer } from './server';
 
-const enum Direction {
-    Up = 1,
-    Down,
-    Left,
-    Right,
-    Stay,
-}
-
 export default class Player
 {
     private tileSize: number;
@@ -34,15 +26,14 @@ export default class Player
         this.ship.displayHeight = this.tileSize * this.SCALE_FACTOR;
 
         this.arrow = scene.add.image(-100, -100, 'arrow');
-        this.arrow.alpha = 0; // TODO: Show arrow
+        this.arrow.alpha = 0;
 
-        // TODO: Charging
         this.mouth = scene.add.image(-100, -100, 'mouth');
         if(!obj.charging)
             this.mouth.alpha = 0;
 
 
-        const fullName = '❤️'.repeat(obj.health) + '/' + '💣'.repeat(obj.bombCount) + '\n' +  name;
+        const fullName = '❤️'.repeat(obj.health) + '/' + '💣'.repeat(obj.bombCount) + '\n' +  obj.name;
 
         this.nameTag = scene.add.text(10, 10, fullName, { font: '10px monospace', strokeThickness: 2, stroke: '#000', align: 'center'});
         this.nameTag.setOrigin(0.5, 1);
@@ -68,27 +59,31 @@ export default class Player
         }
     }
 
-    placeArrow(direction: Direction)
+    placeArrow(direction: string)
     {
         this.arrow.alpha = 1;
 
         switch(direction)
         {
-            case Direction.Up:
+            case 'UP':
                 this.arrow.x = this.ship.x;
                 this.arrow.y = this.ship.y - this.tileSize*0.5;
+                this.arrow.angle = -90;
                 break;
-            case Direction.Down:
+            case 'DOWN':
                 this.arrow.x = this.ship.x;
                 this.arrow.y = this.ship.y + this.tileSize*0.5;
+                this.arrow.angle = 90;
                 break;
-            case Direction.Left:
+            case 'LEFT':
                 this.arrow.x = this.ship.x - this.tileSize*0.5;
                 this.arrow.y = this.ship.y;
+                this.arrow.angle = 180;
                 break;
-            case Direction.Right:
+            case 'RIGHT':
                 this.arrow.x = this.ship.x + this.tileSize*0.5;
                 this.arrow.y = this.ship.y;
+                this.arrow.angle = 0;
                 break;
             default:
                 this.arrow.alpha = 0;
@@ -96,7 +91,6 @@ export default class Player
         }
     }
 
-    // TODO: Ugh...
     lookDirection(direction: string)
     {
         switch(direction)
@@ -104,7 +98,6 @@ export default class Player
             case 'UP':
                 this.ship.angle = 180; 
                 this.mouth.angle = -90; 
-                this.arrow.angle = -90;
 
                 this.mouth.x = this.ship.x;
                 this.mouth.y = this.ship.y - this.tileSize*0.4;
@@ -112,7 +105,6 @@ export default class Player
             case 'DOWN':
                 this.ship.angle = 0;
                 this.mouth.angle = 90;
-                this.arrow.angle = 90;
 
                 this.mouth.x = this.ship.x;
                 this.mouth.y = this.ship.y + this.tileSize*0.4;
@@ -120,7 +112,6 @@ export default class Player
             case 'LEFT':
                 this.ship.angle = 90;
                 this.mouth.angle = 180;
-                this.arrow.angle = 180;
 
                 this.mouth.x = this.ship.x - this.tileSize*0.4;
                 this.mouth.y = this.ship.y;
@@ -128,13 +119,12 @@ export default class Player
             case 'RIGHT':
                 this.ship.angle = -90;
                 this.mouth.angle = 0;
-                this.arrow.angle = 0;
 
                 this.mouth.x = this.ship.x + this.tileSize*0.4;
                 this.mouth.y = this.ship.y;
                 break;
             default:
-                this.arrow.alpha = 0;
+                // this.arrow.alpha = 0;
                 break;
         }
     }

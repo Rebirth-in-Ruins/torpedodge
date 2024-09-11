@@ -114,7 +114,10 @@ class Game extends Phaser.Scene
         conn.onmessage = (evt) =>
         {
             const obj = JSON.parse(evt.data);
-            this.render(obj);
+            if(obj instanceof Array)
+                this.battlefield.renderArrows(obj);
+            else
+                this.render(obj);
         };
 
         new Button(this, width - 40, 30, 'music_muted', 'music_unmuted', (active: boolean) =>
@@ -143,6 +146,8 @@ class Game extends Phaser.Scene
 
     render(gamestate: GameState)
     {
+        // console.log(gamestate.players);
+
         // Render map when we received the settings (if the settings change the client is out of sync but cba).
         if(this.settings === undefined)
         {
