@@ -12,6 +12,10 @@ export default class Kingboard
     render(list: Array<ServerKing>)
     {
         let str = 'KING OF THE HILL\n';
+
+        if(list == null)
+            return
+
         for(const [index, entry] of list.entries())
             str += `${index+1}. ${entry.name} (${entry.score})\n`
         
