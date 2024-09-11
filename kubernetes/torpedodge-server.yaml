@@ -1,4 +1,15 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: torpedodge-server-config
+  labels:
+    app: torpedodge-server
+data:
+  URL: todo
+  USER: todo
+  PASS: todo
+---
+apiVersion: v1
 kind: Service
 metadata:
   labels:
@@ -34,3 +45,6 @@ spec:
         name: torpedodge-server
         ports:
         - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: torpedodge-server-config
