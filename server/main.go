@@ -28,7 +28,7 @@ func main() {
 	}
 
 	gameState, err := game.New(cfg.DatabaseURL, game.Settings{
-		TurnDuration:        2 * time.Second,
+		TurnDuration:        3 * time.Second,
 		GridSize:            12,
 		InventorySize:       2,
 		BombRespawnTime:     3,

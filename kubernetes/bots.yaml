@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: torpedodge-bot
+  name: torpedodge-bot
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: torpedodge-bot
+  template:
+    metadata:
+      labels:
+        app: torpedodge-bot
+    spec:
+      containers:
+      - image: ghcr.io/rebirth-in-ruins/torpedodge-bot:latest
+        name: torpedodge-bot
