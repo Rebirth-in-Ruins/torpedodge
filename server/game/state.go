@@ -15,8 +15,7 @@ import (
 	"github.com/rebirth-in-ruins/torpedodge/server/protocol"
 )
 
-// TODO: Maybe just "Game" might be the better name
-type State struct {
+type Game struct {
 	sync.Mutex
 
 	// entities on the battlefield
@@ -76,7 +75,7 @@ const (
 	goodLootCount = 1
 )
 
-func (g *State) RunSimulation() {
+func (g *Game) RunSimulation() {
 	g.Lock()
 	defer g.Unlock()
 
@@ -223,7 +222,7 @@ func (g *State) RunSimulation() {
 }
 
 // spawnPlayer places the player entity for a client at a random tile
-func (g *State) spawnPlayer(id int, name string, team string) {
+func (g *Game) spawnPlayer(id int, name string, team string) {
 	x, y := g.getFreeRandomTile()
 
 	player := &Player{
@@ -250,10 +249,11 @@ func (g *State) spawnPlayer(id int, name string, team string) {
 
 
 // spawnBomb starts a new count down to explosion at a player's position
-func (g *State) spawnBomb(id int) {
+func (g *Game) spawnBomb(id int) {
 	player, ok := g.players[id]
 	if !ok {
-		panic("could not find player") // TODO:
+		slog.Error("could not find player to spawn bomb", slog.Int("id", id))
+		return
 	}
 
 	// Don't allow stacking bombs
@@ -284,7 +284,7 @@ func (g *State) spawnBomb(id int) {
 }
 
 // spawnAirstrike starts a new count down to explosion at a random tile
-func (g *State) spawnAirstrike() {
+func (g *Game) spawnAirstrike() {
 	x, y := g.getFreeRandomTile()
 
 	airstrike := &Airstrike{
@@ -302,7 +302,7 @@ func (g *State) spawnAirstrike() {
 
 // spawnExplosion adds the entity at the location.
 // Helps with detecting if players were hit
-func (g *State) spawnExplosion(x int, y int, playerID int) {
+func (g *Game) spawnExplosion(x int, y int, playerID int) {
 	// Don't let players spawn explosions outside the grid
 	if g.isOutOfBounds(x, y) {
 		return
@@ -322,7 +322,7 @@ func (g *State) spawnExplosion(x int, y int, playerID int) {
 }
 
 
-func (g *State) spawnCorpse(player *Player) {
+func (g *Game) spawnCorpse(player *Player) {
 	corpse := &Corpse{
 		ID:         g.newID(),
 		Name:       player.Name,
@@ -339,7 +339,7 @@ func (g *State) spawnCorpse(player *Player) {
 	slog.Debug("corpse spawned", slog.Int("x", corpse.X), slog.Int("y", corpse.Y))
 }
 
-func (g *State) spawnLoot(typ string, value int) {
+func (g *Game) spawnLoot(typ string, value int) {
 	x, y := g.getFreeRandomTile()
 
 	loot := &Loot{
@@ -357,7 +357,7 @@ func (g *State) spawnLoot(typ string, value int) {
 }
 
 // spawns explosions in front of the player
-func (g *State) spawnLaser(player *Player) {
+func (g *Game) spawnLaser(player *Player) {
 	rotation := player.Rotation
 	switch rotation {
 	case Down:
@@ -383,7 +383,7 @@ func (g *State) spawnLaser(player *Player) {
 
 // A websocket client will report that a player has left because their connection is gone.
 // TODO: Can this be made private?
-func (g *State) RemovePlayer(id int) {
+func (g *Game) RemovePlayer(id int) {
 	g.Lock()
 	defer g.Unlock()
 
@@ -397,14 +397,14 @@ func (g *State) RemovePlayer(id int) {
 }
 
 // same as above but without locking TODO
-func (g *State) sinkShip(player *Player) {
+func (g *Game) sinkShip(player *Player) {
 	delete(g.players, player.ID)
 	g.playerPositions[player.X][player.Y] = nil
 }
 
 // removeAirstrike removes the entity and replaces it 
 // with explosions at the location
-func (g *State) removeAirstrike(airstrike *Airstrike) {
+func (g *Game) removeAirstrike(airstrike *Airstrike) {
 	delete(g.airstrikes, airstrike.ID)
 	g.airstrikePositions[airstrike.X][airstrike.Y] = nil
 
@@ -417,7 +417,7 @@ func (g *State) removeAirstrike(airstrike *Airstrike) {
 
 // removeBomb removes the entity and replaces it 
 // with explosions at the location
-func (g *State) removeBomb(bomb *Bomb) {
+func (g *Game) removeBomb(bomb *Bomb) {
 	delete(g.bombs, bomb.ID)
 	g.bombPositions[bomb.X][bomb.Y] = nil
 
@@ -438,16 +438,17 @@ func (g *State) removeBomb(bomb *Bomb) {
 }
 
 // removeCorpse removes any remains of the player now
-func (g *State) removeCorpse(corpse *Corpse) {
+func (g *Game) removeCorpse(corpse *Corpse) {
 	delete(g.corpses, corpse.ID)
 	g.corpsePositions[corpse.X][corpse.Y] = nil
 }
 
 // movePlayer changes the position
-func (g *State) movePlayer(id int, direction Direction) {
+func (g *Game) movePlayer(id int, direction Direction) {
 	player, ok := g.players[id]
 	if !ok {
-		panic("could not get player") // TODO:
+		slog.Error("could not find player to move him", slog.Int("id", id))
+		return
 	}
 
 	newX := player.X
@@ -483,12 +484,12 @@ func (g *State) movePlayer(id int, direction Direction) {
 	player.Rotation = direction
 }
 
-func (g *State) addEvent(format string, args ...any) {
+func (g *Game) addEvent(format string, args ...any) {
 	g.events = slices.Insert(g.events, 0, fmt.Sprintf(format, args...))
 	g.events = g.events[:min(len(g.events), 5)] // Upper limit on events
 }
 
-func (g *State) addAnimation(name string, x, y int) {
+func (g *Game) addAnimation(name string, x, y int) {
 	g.animations = append(g.animations, Animation{
 		Name: name,
 		X:    x,
@@ -496,7 +497,7 @@ func (g *State) addAnimation(name string, x, y int) {
 	})
 }
 
-func (g *State) checkLoot() {
+func (g *Game) checkLoot() {
 	// Check if player picked up loot
 	for _, loot := range g.loot {
 		player := g.playerPositions[loot.X][loot.Y]
@@ -528,24 +529,25 @@ func (g *State) checkLoot() {
 	}
 }
 
-func (g *State) chargeLaser(id int) {
+func (g *Game) chargeLaser(id int) {
 	player, ok := g.players[id]
 	if !ok {
-		panic("could not get player") // TODO:
+		slog.Error("could not find player charge laser", slog.Int("id", id))
+		return
 	}
 
 	player.Charging = true
 }
 
 // newID hands out a new unique ID for spawning new entities
-func (g *State) newID() int {
+func (g *Game) newID() int {
 	result := g.counter
 	g.counter++
 	return result
 }
 
 // isOutOfBounds keeps players from moving out of the map.
-func (g *State) isOutOfBounds(x int, y int) bool {
+func (g *Game) isOutOfBounds(x int, y int) bool {
 	horizontal := x < 0 || g.Settings.GridSize <= x
 	vertical := y < 0 || g.Settings.GridSize <= y
 
@@ -553,7 +555,7 @@ func (g *State) isOutOfBounds(x int, y int) bool {
 }
 
 // getFreeRandomTile helps in finding a spawn location for entites.
-func (g *State) getFreeRandomTile() (int, int) {
+func (g *Game) getFreeRandomTile() (int, int) {
 	var x, y int
 	for {
 		x = rand.IntN(g.Settings.GridSize)
@@ -569,7 +571,7 @@ func (g *State) getFreeRandomTile() (int, int) {
 }
 
 // things to keep persistent: record of state and player scores
-func (g *State) storeState() {
+func (g *Game) storeState() {
 	g.bestlist.InsertState(g.JSON(false))
 	for _, player := range g.players {
 		g.bestlist.InsertScore(player.Name, player.Score)
@@ -593,7 +595,7 @@ type Intention struct {
 
 // TODO: Some messages should be evaluated immediately and the state should be sent to spectators (like join, direction known)
 // Needs to be thread-safe.
-func (g *State) StoreInput(id int, message protocol.Message) {
+func (g *Game) StoreInput(id int, message protocol.Message) {
 	g.Lock()
 	defer g.Unlock()
 
@@ -616,7 +618,7 @@ func (g *State) StoreInput(id int, message protocol.Message) {
 }
 
 // A locked room doesn't allow new players to join
-func (g *State) LockRoom() {
+func (g *Game) LockRoom() {
 	g.Lock()
 	defer g.Unlock()
 
@@ -629,7 +631,7 @@ func (g *State) LockRoom() {
 }
 
 // A paused game freezes the game but allows new players to join
-func (g *State) PauseGame() {
+func (g *Game) PauseGame() {
 	g.Lock()
 	defer g.Unlock()
 
@@ -654,13 +656,13 @@ func (g *State) PauseGame() {
 }
 
 // New starts a fresh game state.
-func New(url string, settings Settings) (*State, error) {
+func New(url string, settings Settings) (*Game, error) {
 	repo, err := bestlist.New(url)
 	if err != nil {
 		return nil, fmt.Errorf("creating a bestlist: %w", err)
 	}
 
-	return &State{
+	return &Game{
 		Mutex:              sync.Mutex{},
 		players:            make(map[int]*Player),
 		airstrikes:         make(map[int]*Airstrike),

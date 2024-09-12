@@ -146,8 +146,6 @@ class Game extends Phaser.Scene
 
     render(gamestate: GameState)
     {
-        // console.log(gamestate.players);
-
         // Render map when we received the settings (if the settings change the client is out of sync but cba).
         if(this.settings === undefined)
         {
@@ -185,7 +183,7 @@ class Game extends Phaser.Scene
 
         // Render explosions
         for(const obj of gamestate.explosions)
-            this.battlefield.renderExplosions(obj, this.explodeSound, this.focusLost);
+            this.battlefield.renderExplosions(obj, this.explodeSound, 0, this.focusLost);
 
         // Show animations
         for(const obj of gamestate.animations)

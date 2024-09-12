@@ -19,7 +19,7 @@ type Server struct {
 	// connected clients.
 	clients map[int]*Client
 
-	state *game.State
+	state *game.Game
 
 	// incremented and used to assign IDs to clients
 	counter atomic.Uint64
@@ -29,7 +29,7 @@ type Server struct {
 	password string
 }
 
-func New(state *game.State, username, password string) (*Server, *http.ServeMux) {
+func New(state *game.Game, username, password string) (*Server, *http.ServeMux) {
 	server := &Server{
 		Mutex:    sync.Mutex{},
 		clients:  make(map[int]*Client),

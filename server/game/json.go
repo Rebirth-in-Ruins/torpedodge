@@ -50,7 +50,7 @@ type Score struct {
 	Score int `json:"score"`
 }
 
-func (g *State) JSON(lock bool) []byte {
+func (g *Game) JSON(lock bool) []byte {
 	if lock { // Short-term hack because one caller already has this lock...
 		g.Lock()
 		defer g.Unlock()

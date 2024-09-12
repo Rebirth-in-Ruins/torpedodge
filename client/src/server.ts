@@ -95,6 +95,7 @@ export class ServerAirstrike
 export class ServerExplosion
 {
     id: number
+    playerId: number
 
     x: number
     y: number

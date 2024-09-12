@@ -83,9 +83,10 @@ export default class Battlefield
         if(focusLost)
             return
 
-        const explosion = new Explosion(this.scene);
-
         const [worldX, worldY] = this.gridToWorld(obj.x, obj.y);
+
+        const explosion = new Explosion(this.scene, (obj.playerId % 8)*100);
+
         explosion.x = worldX;
         explosion.y = worldY;
 
