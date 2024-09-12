@@ -168,6 +168,7 @@ func (g *Game) RunSimulation() {
 	for _, player := range g.players {
 		if explosion := g.explosionPositions[player.X][player.Y]; explosion != nil {
 			player.LoseHealth()
+			g.addAnimation("hit", player.X, player.Y)
 
 			// Grant score to player if hit by them
 			if explosion.PlayerID != airstrikeID {

@@ -66,6 +66,7 @@ class Game extends Phaser.Scene
         // Animations
         this.load.aseprite('bomba', 'assets/explosion.png', 'assets/explosion.json');
         this.load.aseprite('score', 'assets/score.png', 'assets/score.json');
+        this.load.aseprite('hit', 'assets/hit.png', 'assets/hit.json');
 
         // Audio
         this.load.audio('death', 'assets/death.mp3');
@@ -92,6 +93,7 @@ class Game extends Phaser.Scene
 
         this.anims.createFromAseprite('bomba');
         this.anims.createFromAseprite('score');
+        this.anims.createFromAseprite('hit');
 
         this.music = this.sound.add('background_music');
         this.music.setLoop(true);
@@ -148,8 +150,6 @@ class Game extends Phaser.Scene
 
     render(gamestate: GameState)
     {
-        // console.log(gamestate.players);
-
         // Render map when we received the settings (if the settings change the client is out of sync but cba).
         if(this.settings === undefined)
         {
