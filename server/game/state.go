@@ -19,12 +19,12 @@ type Game struct {
 	sync.Mutex
 
 	// entities on the battlefield
-	players map[int]*Player
+	players    map[int]*Player
 	airstrikes map[int]*Airstrike
 	explosions map[int]*Explosion
-	bombs map[int]*Bomb
-	corpses map[int]*Corpse
-	loot map[int]*Loot
+	bombs      map[int]*Bomb
+	corpses    map[int]*Corpse
+	loot       map[int]*Loot
 
 	// input of every player
 	inputs map[int]Input
@@ -33,12 +33,12 @@ type Game struct {
 	counter int
 
 	// entities placed on a coordinate system
-	playerPositions [][]*Player
+	playerPositions    [][]*Player
 	airstrikePositions [][]*Airstrike
 	explosionPositions [][]*Explosion
-	bombPositions [][]*Bomb
-	corpsePositions [][]*Corpse
-	lootPositions [][]*Loot
+	bombPositions      [][]*Bomb
+	corpsePositions    [][]*Corpse
+	lootPositions      [][]*Loot
 
 	// game settings
 	Settings Settings
@@ -53,7 +53,7 @@ type Game struct {
 
 	// game tells which client to disconnect (because of death)
 	Disconnect chan int
-	Change chan []Intention
+	Change     chan []Intention
 }
 
 const (
@@ -68,17 +68,16 @@ const (
 
 	// different types of loot grant score
 	scoreGainMediocreLoot = 6
-	scoreGainGoodLoot = 12
+	scoreGainGoodLoot     = 12
 
 	// TODO: Should be settings
 	mediocreLootCount = 3
-	goodLootCount = 1
+	goodLootCount     = 1
 )
 
 func (g *Game) RunSimulation() {
 	g.Lock()
 	defer g.Unlock()
-
 
 	// Sort inputs by time we received them
 	inputs := slices.Collect(maps.Values(g.inputs))
@@ -165,7 +164,6 @@ func (g *Game) RunSimulation() {
 		}
 	}
 
-
 	// Find players that were hit by explosion
 	for _, player := range g.players {
 		if explosion := g.explosionPositions[player.X][player.Y]; explosion != nil {
@@ -174,7 +172,7 @@ func (g *Game) RunSimulation() {
 			// Grant score to player if hit by them
 			if explosion.PlayerID != airstrikeID {
 				hitter := g.players[explosion.PlayerID]
-				hitter.Score += scoreGainHit
+				g.grantScore(hitter, scoreGainHit)
 
 				if hitter.ID == player.ID {
 					g.addEvent("%v hurt itself in confusion", player.Name)
@@ -201,7 +199,7 @@ func (g *Game) RunSimulation() {
 		player.Score += 1
 	}
 
-	// Let players charge their laser 
+	// Let players charge their laser
 	for _, input := range inputs {
 		if _, ok := input.message.(protocol.Laser); ok {
 			g.chargeLaser(input.id)
@@ -247,7 +245,6 @@ func (g *Game) spawnPlayer(id int, name string, team string) {
 	slog.Info("player joined", slog.String("name", player.Name))
 }
 
-
 // spawnBomb starts a new count down to explosion at a player's position
 func (g *Game) spawnBomb(id int) {
 	player, ok := g.players[id]
@@ -268,7 +265,7 @@ func (g *Game) spawnBomb(id int) {
 
 	bomb := &Bomb{
 		ID:        g.newID(),
-		PlayerID: id,
+		PlayerID:  id,
 		X:         player.X,
 		Y:         player.Y,
 		FuseCount: g.Settings.BombFuseLength,
@@ -288,7 +285,7 @@ func (g *Game) spawnAirstrike() {
 	x, y := g.getFreeRandomTile()
 
 	airstrike := &Airstrike{
-		ID: g.newID(),
+		ID:        g.newID(),
 		X:         x,
 		Y:         y,
 		FuseCount: g.Settings.AirstrikeFuseLength,
@@ -320,7 +317,6 @@ func (g *Game) spawnExplosion(x int, y int, playerID int) {
 
 	slog.Debug("explosion spawned", slog.Int("x", explosion.X), slog.Int("y", explosion.Y))
 }
-
 
 func (g *Game) spawnCorpse(player *Player) {
 	corpse := &Corpse{
@@ -361,19 +357,19 @@ func (g *Game) spawnLaser(player *Player) {
 	rotation := player.Rotation
 	switch rotation {
 	case Down:
-		for i := player.Y+1; i < g.Settings.GridSize; i++ {
+		for i := player.Y + 1; i < g.Settings.GridSize; i++ {
 			g.spawnExplosion(player.X, i, player.ID)
 		}
 	case Left:
-		for i := player.X-1; i >= 0; i-- {
+		for i := player.X - 1; i >= 0; i-- {
 			g.spawnExplosion(i, player.Y, player.ID)
 		}
 	case Right:
-		for i := player.X+1; i < g.Settings.GridSize; i++ {
+		for i := player.X + 1; i < g.Settings.GridSize; i++ {
 			g.spawnExplosion(i, player.Y, player.ID)
 		}
 	case Up:
-		for i := player.Y-1; i >= 0; i-- {
+		for i := player.Y - 1; i >= 0; i-- {
 			g.spawnExplosion(player.X, i, player.ID)
 		}
 	}
@@ -402,7 +398,7 @@ func (g *Game) sinkShip(player *Player) {
 	g.playerPositions[player.X][player.Y] = nil
 }
 
-// removeAirstrike removes the entity and replaces it 
+// removeAirstrike removes the entity and replaces it
 // with explosions at the location
 func (g *Game) removeAirstrike(airstrike *Airstrike) {
 	delete(g.airstrikes, airstrike.ID)
@@ -410,12 +406,12 @@ func (g *Game) removeAirstrike(airstrike *Airstrike) {
 
 	// Spawn explosions at the place where the airstrike detonated
 	for i := 0; i < g.Settings.GridSize; i++ {
-		g.spawnExplosion(airstrike.X, i, airstrikeID);
-		g.spawnExplosion(i, airstrike.Y, airstrikeID);
+		g.spawnExplosion(airstrike.X, i, airstrikeID)
+		g.spawnExplosion(i, airstrike.Y, airstrikeID)
 	}
 }
 
-// removeBomb removes the entity and replaces it 
+// removeBomb removes the entity and replaces it
 // with explosions at the location
 func (g *Game) removeBomb(bomb *Bomb) {
 	delete(g.bombs, bomb.ID)
@@ -432,8 +428,8 @@ func (g *Game) removeBomb(bomb *Bomb) {
 
 	// Spawn explosions at the place where the bomb detonated
 	for i := 0; i < g.Settings.GridSize; i++ {
-		g.spawnExplosion(bomb.X, i, bomb.PlayerID);
-		g.spawnExplosion(i, bomb.Y, bomb.PlayerID);
+		g.spawnExplosion(bomb.X, i, bomb.PlayerID)
+		g.spawnExplosion(i, bomb.Y, bomb.PlayerID)
 	}
 }
 
@@ -454,7 +450,7 @@ func (g *Game) movePlayer(id int, direction Direction) {
 	newX := player.X
 	newY := player.Y
 
-	switch(direction) {
+	switch direction {
 	case Left:
 		newX -= 1
 	case Right:
@@ -464,7 +460,6 @@ func (g *Game) movePlayer(id int, direction Direction) {
 	case Down:
 		newY += 1
 	}
-
 
 	// Don't leave map
 	if g.isOutOfBounds(newX, newY) {
@@ -502,7 +497,7 @@ func (g *Game) checkLoot() {
 	for _, loot := range g.loot {
 		player := g.playerPositions[loot.X][loot.Y]
 		if player != nil {
-			player.Score += loot.Value
+			g.grantScore(player, loot.Value)
 			delete(g.loot, loot.ID)
 			g.addEvent("%v found some %v loot", player.Name, loot.Type)
 		}
@@ -529,7 +524,12 @@ func (g *Game) checkLoot() {
 	}
 }
 
-func (g *Game) chargeLaser(id int) {
+func (g *State) grantScore(player *Player, score int) {
+	player.Score += score
+	g.addAnimation("score", player.X, player.Y)
+}
+
+func (g *State) chargeLaser(id int) {
 	player, ok := g.players[id]
 	if !ok {
 		slog.Error("could not find player charge laser", slog.Int("id", id))
@@ -551,7 +551,7 @@ func (g *Game) isOutOfBounds(x int, y int) bool {
 	horizontal := x < 0 || g.Settings.GridSize <= x
 	vertical := y < 0 || g.Settings.GridSize <= y
 
-	return horizontal || vertical;
+	return horizontal || vertical
 }
 
 // getFreeRandomTile helps in finding a spawn location for entites.
@@ -579,17 +579,17 @@ func (g *Game) storeState() {
 }
 
 type Input struct {
-	id int
+	id      int
 	message protocol.Message
-	time time.Time
+	time    time.Time
 }
 
 func (i Input) String() string {
-	return fmt.Sprintf("%v:{%s}", i.id ,i.message)
+	return fmt.Sprintf("%v:{%s}", i.id, i.message)
 }
 
 type Intention struct {
-	ID int `json:"id"`
+	ID        int    `json:"id"`
 	Direction string `json:"direction"`
 }
 
@@ -686,4 +686,3 @@ func New(url string, settings Settings) (*Game, error) {
 		Change:             make(chan []Intention, 10),
 	}, nil
 }
-
