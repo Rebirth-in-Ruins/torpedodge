@@ -187,7 +187,7 @@ class Game extends Phaser.Scene
 
         // Render explosions
         for(const obj of gamestate.explosions)
-            this.battlefield.renderExplosions(obj, this.explodeSound, 0, this.focusLost);
+            this.battlefield.renderExplosions(obj, this.explodeSound, this.focusLost);
 
         // Show animations
         for(const obj of gamestate.animations)

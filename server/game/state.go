@@ -525,12 +525,12 @@ func (g *Game) checkLoot() {
 	}
 }
 
-func (g *State) grantScore(player *Player, score int) {
+func (g *Game) grantScore(player *Player, score int) {
 	player.Score += score
 	g.addAnimation("score", player.X, player.Y)
 }
 
-func (g *State) chargeLaser(id int) {
+func (g *Game) chargeLaser(id int) {
 	player, ok := g.players[id]
 	if !ok {
 		slog.Error("could not find player charge laser", slog.Int("id", id))
